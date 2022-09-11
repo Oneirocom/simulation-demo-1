@@ -1,4 +1,4 @@
-import ECS from "./ecs.js";
+import ECS from "./ecs/ecs.js";
 
 const gameEl = document.querySelector("main");
 
@@ -16,13 +16,14 @@ const entities = ECS.init({
       hunger: 1,
       companionship: 0
     })
+    // ECS.Components.behaviorTree()
   ]
 });
 
 function loop() {
   describeWorld();
-  describeYou();
-  assessPlan();
+  let need = describeYou();
+  assessPlan(need);
   takeAction();
 }
 
@@ -34,7 +35,7 @@ function describeWorld() {
 
 function describeYou() {
   let p = document.createElement("p");
-  let [affliction, degree] = ECS.Systems.needs.status(entities, "PLAYER");
+  let [need, degree] = ECS.Systems.needs.status(entities, "PLAYER");
   let descriptions = {
     exposure: "cold",
     hunger: "hungry",
@@ -42,9 +43,15 @@ function describeYou() {
     none: "fine"
   };
   p.innerText =
-    "You feel " + (degree >= 5 ? "very " : " ") + descriptions[affliction];
+    "You feel " + (degree >= 5 ? "very " : " ") + descriptions[need];
   gameEl.appendChild(p);
+  return need;
+}
+
+function assessPlan(need) {
+  // cold -> make fire
 }
 
 describeWorld();
-describeYou();
+let need = describeYou();
+assessPlan(need);
