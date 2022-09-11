@@ -1,5 +1,6 @@
 export default ComponentsKeys => {
   const Systems = {}
+
   Systems.describe = (entities, id) => {
     let description = entities.get(id).get(ComponentsKeys.DESCRIBE);
     if (description.silent) return "";
