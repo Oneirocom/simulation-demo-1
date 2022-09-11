@@ -1,4 +1,5 @@
 import ECS from "./ecs/ecs.js";
+import BT from "./bt.js";
 
 const gameEl = document.querySelector("main");
 
@@ -16,7 +17,7 @@ const entities = ECS.init({
       hunger: 1,
       companionship: 0
     })
-    // ECS.Components.behaviorTree()
+    // ECS.Components.behaviorTree(BT.decisionNode())
   ]
 });
 
@@ -55,3 +56,8 @@ function assessPlan(need) {
 describeWorld();
 let need = describeYou();
 assessPlan(need);
+
+Object.prototype.inspect = function() {
+  console.log(this);
+  return this;
+};

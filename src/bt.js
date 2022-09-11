@@ -1,28 +1,40 @@
 /**
 A logic module
 
-This is actually a stateless binary Decision Tree for simplicity, but an
-actual Behavior Tree could go here instead if the complexity is needed.
-
-Each run of a tree will start at the top and traverse down until reaching an
-action, which is returned.
+This is actually a stateless Decision Tree for simplicity, but an actual
+Behavior Tree could go here instead if the complexity is needed.
 */
 
-function run(node) {
-  if (node.type === "action") return node.perform();
-  if (node.type === "decision")
-    return run(node.predicate() ? node.aNode : node.bNode);
-  throw Error(`Node (${JSON.stringify(node)}) is not recognized`);
+/**
+ * Traverses a tree breadth first from left to right until reaching an action
+ * node.
+
+ * @param {list[node | action]} a layer of the tree to run
+ *
+ * @return  {any} the result of the selected action
+ */
+function run(nodes) {
+  let selectedNode = nodes.find(
+    node => node.type === "action" || node.predicate()
+  );
+  if (typeof selectedNode === "undefined")
+    throw Error("reached end of tree but no action reached");
+  if (selectedNode.type === "action") {
+    return selectedNode.perform();
+  } else {
+    return run(selectedNode.children);
+  }
 }
 /**
  * A node with children (no decision yet reached).
  *
  * @pred {fn} A predicate function
- * @aNode {node | action} node to run if predicate passes
- * @bNode {node | action} node to run if predicate fails
+ * @children {list[node | action]} node to run if predicate passes
  */
-function decisionNode(predicate, aNode, bNode) {
-  return { type: "decision", predicate, aNode, bNode };
+function node(predicate, children) {
+  if (!Array.isArray(children)) throw "node children must be an array";
+
+  return { type: "node", predicate, children };
 }
 
 /**
@@ -30,8 +42,8 @@ function decisionNode(predicate, aNode, bNode) {
  *
  * @perform {fn} An action to take
  */
-function actionNode(perform) {
+function action(perform) {
   return { type: "action", perform };
 }
 
-export default { actionNode, decisionNode, run };
+export default { action, node, run };

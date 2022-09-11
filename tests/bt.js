@@ -3,19 +3,19 @@ import { assertEqual } from "./utils.js";
 
 const state = { mode: "toString", value: 3 };
 
-const root = BT.decisionNode(
-  () => state.mode === "toString",
-  BT.actionNode(() => state.value.toString()),
-  BT.decisionNode(
-    () => state.mode === "evenOrOdd",
-    BT.decisionNode(
-      () => state.value % 2 === 0,
-      BT.actionNode(() => "value is even"),
-      BT.actionNode(() => "value is odd")
-    ),
-    BT.actionNode(() => "don't know what to do")
-  )
-);
+const root = [
+  BT.node(() => state.mode === "toString", [
+    BT.action(() => state.value.toString())
+  ]),
+  BT.node(() => state.mode === "evenOrOdd", [
+    BT.node(() => state.value % 2 === 0, [BT.action(() => "value is even")]),
+    BT.action(() => "value is odd")
+  ]),
+  BT.action(() => "don't know what to do")
+];
+
+// state.mode = "missin";
+// BT.run(root);
 
 assertEqual("with toString", "3", BT.run(root));
 
