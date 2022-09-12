@@ -1,24 +1,23 @@
 import BT from "../src/bt.js";
 import { assertEqual } from "./utils.js";
 
-const state = { mode: "toString", value: 3 };
-
 const root = [
-  BT.node(() => state.mode === "toString", [
-    BT.action(() => state.value.toString())
+  BT.node(blackboard => blackboard.mode === "toString", [
+    BT.action(blackboard => blackboard.value.toString())
   ]),
-  BT.node(() => state.mode === "evenOrOdd", [
-    BT.node(() => state.value % 2 === 0, [BT.action(() => "value is even")]),
-    BT.action(() => "value is odd")
+  BT.node(blackboard => blackboard.mode === "evenOrOdd", [
+    BT.node(blackboard => blackboard.value % 2 === 0, [
+      BT.action(_blackboard => "value is even")
+    ]),
+    BT.action(_blackboard => "value is odd")
   ]),
-  BT.action(() => "don't know what to do")
+  BT.action(_blackboard => "don't know what to do")
 ];
 
-// state.mode = "missin";
-// BT.run(root);
+const state = { mode: "toString", value: 3 };
 
-assertEqual("with toString", "3", BT.run(root));
+assertEqual("with toString", "3", BT.run(root, state));
 
 state.mode = "evenOrOdd";
 state.value = 3;
-assertEqual("with find", "value is odd", BT.run(root));
+assertEqual("with find", "value is odd", BT.run(root, state));

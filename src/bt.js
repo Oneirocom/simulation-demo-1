@@ -7,22 +7,23 @@ Behavior Tree could go here instead if the complexity is needed.
 
 /**
  * Traverses a tree breadth first from left to right until reaching an action
- * node.
+ * node. Each node will receive the supplied blackboard.
 
- * @param {list[node | action]} a layer of the tree to run
+ * @nodes {list[node | action]} a layer of the tree to run
+ * @blackboard {any} shared state available to all nodes
  *
  * @return  {any} the result of the selected action
  */
-function run(nodes) {
+function run(nodes, blackboard) {
   let selectedNode = nodes.find(
-    node => node.type === "action" || node.predicate()
+    node => node.type === "action" || node.predicate(blackboard)
   );
   if (typeof selectedNode === "undefined")
     throw Error("reached end of tree but no action reached");
   if (selectedNode.type === "action") {
-    return selectedNode.perform();
+    return selectedNode.perform(blackboard);
   } else {
-    return run(selectedNode.children);
+    return run(selectedNode.children, blackboard);
   }
 }
 /**
