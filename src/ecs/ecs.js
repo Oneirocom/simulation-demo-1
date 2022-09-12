@@ -1,29 +1,43 @@
-import { ComponentsKeys, Components } from "./components.js";
-import sys from "./systems.js";
-const Systems = sys(ComponentsKeys);
-
 const entitiesWithComponent = new Map();
+export const Components = {};
+const entities = new Map();
 
-function init(startingScene) {
-  const scene = new Map();
-  Object.entries(startingScene).forEach(([id, components]) => {
-    scene.set(id, new Map());
-    components.forEach(addComponent.bind(null, scene, id));
-  });
-  return scene;
+export function registerComponent(key, fn) {
+  Components[key] = v => [key, fn(v)];
 }
-function addComponent(scene, id, [key, values]) {
+
+export function init(startingScene) {
+  Object.entries(startingScene).forEach(([id, components]) => {
+    entities.set(id, new Map());
+    components.forEach(addComponent.bind(null, id));
+  });
+}
+
+export function addComponent(id, [key, values]) {
   entitiesWithComponent.set(
     key,
     (entitiesWithComponent.get(key) || new Set()).add(id)
   );
 
-  return scene.set(id, scene.get(id).set(key, values));
+  return entities.set(id, entities.get(id).set(key, values));
 }
 
-export default { Systems, Components, init };
+export function entity(id) {
+  return entities.get(id);
+}
 
-Object.prototype.inspect = function() {
-  console.log(this);
-  return this;
-};
+/**
+ * Finds entity ids that have all specified components.
+
+ * @param {[string, ...string[]]} query - List of component keys
+ *
+ * @return {string[]} List of matching entities
+ */
+export function query([first, ...rest]) {
+  const matches = entitiesWithComponent.get(first) || new Set();
+  for (const id of matches.values()) {
+    const e = entity(id);
+    if (!rest.map(c => e.has(c)).every(x => x)) matches.delete(id);
+  }
+  return [...matches];
+}

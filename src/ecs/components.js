@@ -1,15 +1,6 @@
-export const ComponentsKeys = {
-  DESCRIBE: "DESCRIBE",
-  CONTAINS: "CONTAINS",
-  NEEDS: "NEEDS",
-  BT: "BT"
-};
-export const Components = {};
+import * as ECS from "./ecs.js";
 
-Components.describe = v => [ComponentsKeys.DESCRIBE, v];
-
-Components.contains = v => [ComponentsKeys.CONTAINS, new Set(v)];
-
-Components.needs = v => [ComponentsKeys.NEEDS, v];
-
-Components.behaviorTree = v => [ComponentsKeys.BT, v];
+ECS.registerComponent("Describe", v => v);
+ECS.registerComponent("Contains", v => new Set(v));
+ECS.registerComponent("Needs", v => v);
+ECS.registerComponent("BehaviorTree", v => v);

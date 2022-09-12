@@ -9,10 +9,10 @@ Behavior Tree could go here instead if the complexity is needed.
  * Traverses a tree breadth first from left to right until reaching an action
  * node. Each node will receive the supplied blackboard.
 
- * @nodes {list[node | action]} a layer of the tree to run
- * @blackboard {any} shared state available to all nodes
+ * @param {list[node | action]} nodes - a layer of the tree to run
+ * @param {any} blackboard - shared state available to all nodes
  *
- * @return  {any} the result of the selected action
+ * @return {any} the result of the selected action
  */
 function run(nodes, blackboard) {
   let selectedNode = nodes.find(
@@ -29,8 +29,8 @@ function run(nodes, blackboard) {
 /**
  * A node with children (no decision yet reached).
  *
- * @pred {fn} A predicate function
- * @children {list[node | action]} node to run if predicate passes
+ * @param {fn} pred - A predicate function
+ * @param {list[node | action]} children - next layer to run if predicate passes
  */
 function node(predicate, children) {
   if (!Array.isArray(children)) throw "node children must be an array";
@@ -41,7 +41,7 @@ function node(predicate, children) {
 /**
  * A terminal node (the reached decision).
  *
- * @perform {fn} An action to take
+ * @param {fn} perform - An action to take
  */
 function action(perform) {
   return { type: "action", perform };
