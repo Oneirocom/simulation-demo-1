@@ -6,14 +6,23 @@ import Systems from "./ecs/systems.js";
 const gameEl = document.querySelector("main");
 
 ECS.init({
-  WORLD: [
-    ECS.Components.Describe({ name: "An island" }),
-    ECS.Components.Contains(["FOREST", "FIELD", "PLAYER"])
+  WORLD: [ECS.Components.Describe({ name: "An island" })],
+  FOREST: [
+    ECS.Components.Describe({ name: "A forest" }),
+    ECS.Components.Parent("WORLD")
   ],
-  FOREST: [ECS.Components.Describe({ name: "A forest" })],
-  FIELD: [ECS.Components.Describe({ name: "A field" })],
+  FIELD: [
+    ECS.Components.Describe({ name: "A field" }),
+    ECS.Components.Parent("WORLD")
+  ],
+  // TOURCH: [
+  //   ECS.Components.Describe({ name: "A tourch" }),
+  //   ECS.Components.Burnable(),
+  //   ECS.Components.Parent("PLAYER")
+  // ],
   PLAYER: [
     ECS.Components.Describe({ name: "You", silent: true }),
+    ECS.Components.Parent("WORLD"),
     ECS.Components.Needs({
       exposure: 5,
       hunger: 1,
@@ -21,29 +30,45 @@ ECS.init({
     }),
     ECS.Components.BehaviorTree([
       BT.node(({ need }) => need === "exposure", [
-        // TODO print each step, ie: "warm up by fire, there is no fire; build a fire, you have no wood; find wood"
-        // requires threading intermediary state through bt
-        BT.node(() => ECS.query(["HeatSource"]).length, [
-          BT.action(() => "go to fire")
-        ]),
-        BT.node(() => {
-          // TODO player_has_burnable?()
-          false;
-        }, [BT.action(() => "make a fire")]),
-        BT.action(() => "find some wood")
+        BT.node(
+          ({ steps }) => {
+            let step = "warm up by fire...";
+            const heatSource = ECS.query(["HeatSource"]).length;
+            if (!heatSource) step += " there is no fire";
+            steps.push(step);
+            heatSource;
+          },
+          [BT.action(({ steps }) => [steps, Actions.relax])]
+        ),
+        BT.node(
+          ({ steps }) => {
+            let step = "build a fire...";
+            const wood = Systems.placement.children("PLAYER", ["Burnable"]);
+            if (!wood.length) step += " you have nothing to make fire with";
+            steps.push(step);
+            return wood.length;
+          },
+          [BT.action(({ steps }) => [steps, Actions.makeFire])]
+        ),
+        BT.action(({ steps }) => [
+          [...steps, "find something to burn..."],
+          Actions.getWood
+        ])
       ]),
       BT.node(({ need }) => need == "hunger", []),
       BT.node(({ need }) => need == "companionship", []),
-      BT.action(({ need }) => console.log("feeling", need))
+      BT.action(() => Actions.relax)
     ])
   ]
 });
+
+const Actions = { relax: "relax", getWood: "getWood", makeFire: "makeFire" };
 
 function loop() {
   describeWorld();
   let need = describeYou();
   let plan = assessPlan(need);
-  takeAction();
+  takeAction(plan);
 }
 
 function describeWorld() {
@@ -53,7 +78,14 @@ function describeWorld() {
 }
 
 function describeYou() {
-  let p = document.createElement("p");
+  const inventory = Systems.placement
+    .children("PLAYER", ["Describe"])
+    .map(Systems.describe)
+    .join("\n");
+  let p1 = document.createElement("p");
+  p1.innerText = "You  have:\n" + (inventory || "nothing");
+  gameEl.appendChild(p1);
+
   let [need, degree] = Systems.needs.status("PLAYER");
   let descriptions = {
     exposure: "cold",
@@ -61,23 +93,33 @@ function describeYou() {
     companionship: "lonely",
     none: "fine"
   };
-  p.innerText =
+  let p2 = document.createElement("p");
+  p2.innerText =
     "You feel " + (degree >= 5 ? "very " : " ") + descriptions[need];
-  gameEl.appendChild(p);
+  gameEl.appendChild(p2);
   return need;
 }
 
 function assessPlan(need) {
-  let plan = Systems.logic.run({ need: need }, "PLAYER");
+  let [steps, plan] = Systems.logic.run({ need: need, steps: [] }, "PLAYER");
   let p = document.createElement("p");
-  p.innerText = plan;
+  p.innerText = "What should you do?\n\n" + steps.join("\n");
   gameEl.appendChild(p);
   return plan;
 }
 
+function takeAction(plan) {
+  // TODO describe plan
+  // TODO update world
+  let p = document.createElement("p");
+  p.innerText = "You " + plan;
+  gameEl.appendChild(p);
+}
+
 describeWorld();
 let need = describeYou();
-assessPlan(need);
+let plan = assessPlan(need);
+takeAction(plan);
 
 Object.prototype.inspect = function() {
   console.log(this);

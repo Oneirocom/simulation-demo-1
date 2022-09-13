@@ -21,3 +21,17 @@ assertEqual("with toString", "3", BT.run(root, state));
 state.mode = "evenOrOdd";
 state.value = 3;
 assertEqual("with find", "value is odd", BT.run(root, state));
+
+const passthrough = [
+  BT.node(blackboard => {
+    blackboard.remember = "remember me";
+    return false;
+  }, []),
+  BT.action(blackboard => blackboard.remember)
+];
+
+assertEqual(
+  "passing data throug the blackboard",
+  "remember me",
+  BT.run(passthrough)
+);

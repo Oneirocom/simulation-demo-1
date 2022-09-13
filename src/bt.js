@@ -7,14 +7,14 @@ Behavior Tree could go here instead if the complexity is needed.
 
 /**
  * Traverses a tree breadth first from left to right until reaching an action
- * node. Each node will receive the supplied blackboard.
+ * node. Each node will receive the supplied blackboard and can read/write to it.
 
  * @param {list[node | action]} nodes - a layer of the tree to run
  * @param {any} blackboard - shared state available to all nodes
  *
  * @return {any} the result of the selected action
  */
-function run(nodes, blackboard) {
+function run(nodes, blackboard = {}) {
   let selectedNode = nodes.find(
     node => node.type === "action" || node.predicate(blackboard)
   );
