@@ -15,11 +15,6 @@ ECS.init({
     ECS.Components.Describe({ name: "A field" }),
     ECS.Components.Parent("WORLD")
   ],
-  // TOURCH: [
-  //   ECS.Components.Describe({ name: "A tourch" }),
-  //   ECS.Components.Burnable(),
-  //   ECS.Components.Parent("PLAYER")
-  // ],
   PLAYER: [
     ECS.Components.Describe({ name: "You", silent: true }),
     ECS.Components.Parent("WORLD"),
@@ -38,7 +33,7 @@ ECS.init({
             steps.push(step);
             heatSource;
           },
-          [BT.action(({ steps }) => [steps, Actions.relax])]
+          [BT.action(({ steps }) => [steps, Actions.warmUp])]
         ),
         BT.node(
           ({ steps }) => {
@@ -62,13 +57,48 @@ ECS.init({
   ]
 });
 
-const Actions = { relax: "relax", getWood: "getWood", makeFire: "makeFire" };
+const Actions = {
+  relax: { describe: "just hang out", updates: () => {} },
+  warmUp: {
+    describe: "warm up by the fire",
+    updates: () => {
+      ECS.update("PLAYER", "Needs", needs => ({ exposure: 0, ...needs }));
+    }
+  },
+  getWood: {
+    describe: "gather wood from the forest",
+    updates: () => {
+      ECS.addEntity("WOOD", [
+        ECS.Components.Burnable(),
+        ECS.Components.Parent("PLAYER")
+      ]);
+    }
+  },
+  makeFire: {
+    describe: "build a fire with the wood",
+    updates: () => {
+      ECS.removeEntity("WOOD");
+      ECS.addEntity("CAMPFIRE", [
+        ECS.Components.HeatSource(),
+        ECS.Components.Parent("WORLD")
+      ]);
+    }
+  }
+};
 
 function loop() {
+  ECS.debug();
+  gameEl.innerHTML = "";
+
   describeWorld();
   let need = describeYou();
-  let plan = assessPlan(need);
-  takeAction(plan);
+  let action = assessPlan(need);
+  takeAction(action);
+  timePasses();
+
+  let p = document.createElement("p");
+  p.innerText = "Press any key for next tick";
+  gameEl.appendChild(p);
 }
 
 function describeWorld() {
@@ -108,20 +138,20 @@ function assessPlan(need) {
   return plan;
 }
 
-function takeAction(plan) {
-  // TODO describe plan
-  // TODO update world
+function takeAction(action) {
+  action.updates();
+
   let p = document.createElement("p");
-  p.innerText = "You " + plan;
+  p.innerText = "You " + action.describe;
   gameEl.appendChild(p);
 }
 
-describeWorld();
-let need = describeYou();
-let plan = assessPlan(need);
-takeAction(plan);
+function timePasses() {
+  // TODO
+}
 
-Object.prototype.inspect = function() {
-  console.log(this);
-  return this;
-};
+loop();
+
+window.addEventListener("keydown", () => {
+  loop();
+});

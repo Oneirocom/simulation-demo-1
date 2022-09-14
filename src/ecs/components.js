@@ -5,3 +5,4 @@ ECS.registerComponent("Parent", v => v);
 ECS.registerComponent("Needs", v => v);
 ECS.registerComponent("BehaviorTree", v => v);
 ECS.registerComponent("Burnable", () => true);
+ECS.registerComponent("HeatSource", () => true);
