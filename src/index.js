@@ -27,18 +27,18 @@ ECS.init({
       BT.node(({ need }) => need === "exposure", [
         BT.node(
           ({ steps }) => {
-            let step = "warm up by fire...";
             const heatSource = ECS.query(["HeatSource"]).length;
+            let step = "warm up by fire...";
             if (!heatSource) step += " there is no fire";
             steps.push(step);
-            heatSource;
+            return heatSource;
           },
           [BT.action(({ steps }) => [steps, Actions.warmUp])]
         ),
         BT.node(
           ({ steps }) => {
-            let step = "build a fire...";
             const wood = Systems.placement.children("PLAYER", ["Burnable"]);
+            let step = "build a fire...";
             if (!wood.length) step += " you have nothing to make fire with";
             steps.push(step);
             return wood.length;
@@ -50,25 +50,21 @@ ECS.init({
           Actions.getWood
         ])
       ]),
-      BT.node(({ need }) => need == "hunger", []),
-      BT.node(({ need }) => need == "companionship", []),
-      BT.action(() => Actions.relax)
+      // TODO complete other needs
+      // BT.node(({ need }) => need == "hunger", []),
+      // BT.node(({ need }) => need == "companionship", []),
+      BT.action(() => [["Nothing more to do"], Actions.relax])
     ])
   ]
 });
 
 const Actions = {
   relax: { describe: "just hang out", updates: () => {} },
-  warmUp: {
-    describe: "warm up by the fire",
-    updates: () => {
-      ECS.update("PLAYER", "Needs", needs => ({ exposure: 0, ...needs }));
-    }
-  },
   getWood: {
     describe: "gather wood from the forest",
     updates: () => {
       ECS.addEntity("WOOD", [
+        ECS.Components.Describe({ name: "Some chopped wood" }),
         ECS.Components.Burnable(),
         ECS.Components.Parent("PLAYER")
       ]);
@@ -79,26 +75,38 @@ const Actions = {
     updates: () => {
       ECS.removeEntity("WOOD");
       ECS.addEntity("CAMPFIRE", [
+        ECS.Components.Describe({ name: "A burning campfire" }),
         ECS.Components.HeatSource(),
         ECS.Components.Parent("WORLD")
       ]);
     }
+  },
+  warmUp: {
+    describe: "warm up by the fire",
+    updates: () => {
+      ECS.update("PLAYER", "Needs", needs => ({ ...needs, exposure: 0 }));
+    }
   }
+  // TODO add more action handlers
 };
 
-function loop() {
-  ECS.debug();
+function loop(action) {
   gameEl.innerHTML = "";
 
+  if (action) takeAction(action);
+
   describeWorld();
+
   let need = describeYou();
-  let action = assessPlan(need);
-  takeAction(action);
+
+  let nextAction = assessPlan(need);
   timePasses();
 
   let p = document.createElement("p");
   p.innerText = "Press any key for next tick";
   gameEl.appendChild(p);
+  ECS.debug();
+  return nextAction;
 }
 
 function describeWorld() {
@@ -147,11 +155,10 @@ function takeAction(action) {
 }
 
 function timePasses() {
-  // TODO
+  // TODO "age" needs (based on context) and fire (removeEntity when epired)
 }
 
-loop();
-
+let nextAction = loop();
 window.addEventListener("keydown", () => {
-  loop();
+  nextAction = loop(nextAction);
 });

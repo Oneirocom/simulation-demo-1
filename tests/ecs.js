@@ -46,3 +46,23 @@ assertEqual(
   initialB,
   ECS.entity("B")
 );
+
+// removeEntity
+
+ECS.removeEntity("A");
+assertEqual("delete entity", undefined, ECS.entity("A"));
+assertEqual(
+  "deleting entity clears component cache",
+  ["B"],
+  ECS.query(["Echo"])
+);
+
+// removeComponent
+
+ECS.removeComponent("B", "Echo");
+assertEqual("remove component", new Map(), ECS.entity("B"));
+assertEqual(
+  "deleting component clears component cache",
+  [],
+  ECS.query(["Echo"])
+);

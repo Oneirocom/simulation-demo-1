@@ -7,7 +7,10 @@ Systems.describe = id => {
   let description = ECS.entity(id).get("Describe");
   if (description.silent) return "";
 
-  let contents = Systems.placement.children(id).map(Systems.describe);
+  let contents = Systems.placement
+    .children(id)
+    .map(Systems.describe)
+    .filter(d => d !== "");
   if (contents.length) contents = ["which has", ...contents];
   return [description.name, ...contents].join("\n");
 };
@@ -45,7 +48,7 @@ Systems.placement = {
    */
   children(owner, query = []) {
     return ECS.query(["Parent", ...query]).filter(
-      id => ECS.entity(id).get("Parent") === owner
+      id => id && ECS.entity(id).get("Parent") === owner
     );
   }
 };

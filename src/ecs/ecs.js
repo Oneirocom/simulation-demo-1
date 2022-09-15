@@ -1,4 +1,4 @@
-const entitiesWithComponent = new Map();
+const entitiesByComponent = new Map();
 export const Components = {};
 const entities = new Map();
 
@@ -18,13 +18,15 @@ export function addEntity(id, components) {
 }
 
 export function removeEntity(id) {
+  const components = entity(id);
   entities.delete(id);
+  [...components.keys()].map(c => entitiesByComponent.get(c).delete(id));
 }
 
 export function addComponent(id, key, values) {
-  entitiesWithComponent.set(
+  entitiesByComponent.set(
     key,
-    (entitiesWithComponent.get(key) || new Set()).add(id)
+    (entitiesByComponent.get(key) || new Set()).add(id)
   );
 
   return entities.set(id, entities.get(id).set(key, values));
@@ -32,6 +34,7 @@ export function addComponent(id, key, values) {
 
 export function removeComponent(id, key) {
   entities.get(id).delete(key);
+  entitiesByComponent.get(key).delete(id);
 }
 
 /**
@@ -52,7 +55,7 @@ export function entity(id) {
  * @return {string[]} List of matching entities
  */
 export function query([first, ...rest]) {
-  const matches = entitiesWithComponent.get(first) || new Set();
+  const matches = new Set(entitiesByComponent.get(first));
   for (const id of matches.values()) {
     const e = entity(id);
     if (!rest.map(c => e.has(c)).every(x => x)) matches.delete(id);
@@ -76,5 +79,6 @@ export function update(id, component, fn) {
 }
 
 export function debug() {
-  console.debug(entities);
+  console.debug("entities", entities);
+  console.debug("entitiesByComponent", entitiesByComponent);
 }
