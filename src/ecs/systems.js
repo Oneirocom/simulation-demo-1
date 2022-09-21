@@ -52,3 +52,13 @@ Systems.placement = {
     );
   }
 };
+
+Systems.food = {
+  available() {
+    return Systems.placement.children("PLAYER", ["Edible"]).length > 0;
+  },
+  eat() {
+    ECS.removeEntity(Systems.placement.children("PLAYER", ["Edible"])[0]);
+    ECS.update("PLAYER", "Needs", needs => ({ ...needs, hunger: 0 }));
+  }
+};

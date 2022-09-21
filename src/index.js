@@ -50,8 +50,25 @@ ECS.init({
           Actions.getWood
         ])
       ]),
+      BT.node(({ need }) => need == "hunger", [
+        BT.node(
+          ({ steps }) => {
+            if (Systems.food.available()) {
+              steps.push("eat some food...");
+              return true;
+            } else {
+              steps.push("you have nothing to eat");
+              return false;
+            }
+          },
+          [BT.action(({ steps }) => [steps, Actions.eatFood])]
+        ),
+        BT.action(({ steps }) => [
+          [...steps, "find something to eat"],
+          Actions.findFood
+        ])
+      ]),
       // TODO complete other needs
-      // BT.node(({ need }) => need == "hunger", []),
       // BT.node(({ need }) => need == "companionship", []),
       BT.action(() => [["Nothing more to do"], Actions.relax])
     ])
@@ -85,6 +102,22 @@ const Actions = {
     describe: "warm up by the fire",
     updates: () => {
       ECS.update("PLAYER", "Needs", needs => ({ ...needs, exposure: 0 }));
+    }
+  },
+  eatFood: {
+    describe: "eat your food",
+    updates: () => {
+      Systems.food.eat();
+    }
+  },
+  findFood: {
+    describe: "get some grains from the field",
+    updates: () => {
+      ECS.addEntity("GRAINS", [
+        ECS.Components.Describe({ name: "Some simple grains" }),
+        ECS.Components.Edible(),
+        ECS.Components.Parent("PLAYER")
+      ]);
     }
   }
   // TODO add more action handlers
