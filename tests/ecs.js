@@ -5,11 +5,12 @@ ECS.registerComponent("One", () => "one");
 ECS.registerComponent("Two", () => "two");
 ECS.registerComponent("Echo", text => text);
 
-const systemTest = [];
-ECS.registerSystem("A", () => systemTest.push("A"));
-ECS.registerSystem("B", () => systemTest.push("B"));
-ECS.tick();
-assertEqual("registered systems runin order", ["A", "B"], systemTest);
+const systemState = [];
+ECS.registerSystem("A", () => systemState.push("A"));
+ECS.registerSystem("B", () => systemState.push("B"));
+const tickReturns = ECS.tick();
+assertEqual("registered systems runin order", ["A", "B"], systemState);
+assertEqual("ECS.tick returns system returns", [1, 2], tickReturns);
 
 // adding entities & components
 ECS.addEntity("A", [ECS.Components.One()]);

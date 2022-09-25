@@ -11,6 +11,7 @@ export function registerComponent(key, fn) {
  * Registered systems will be called each `ECS.tick()`
  *
  * Provided callbacks are ran in the order they are registered
+ * Any returned value will be returned form ECS.tick.
  *
  * @param {string} key
  * @param {fn} callback
@@ -22,10 +23,11 @@ export function registerSystem(key, fn) {
 
 /**
  * Call to progress all registered systems
+ *
+ * @returns [any()] Returns the results of each system
  */
 export function tick() {
-  Systems.forEach(cb => cb());
-  // TODO maybe return the results to run on the caller
+  return [...Systems.values()].map(cb => cb());
 }
 
 export function init(startingScene) {

@@ -96,6 +96,7 @@ const Actions = {
         ECS.Components.HeatSource(),
         ECS.Components.Aging(3, () => {
           ECS.removeEntity("CAMPFIRE");
+          return "The campfire burns out";
         }),
         ECS.Components.Parent("WORLD")
       ]);
@@ -134,26 +135,20 @@ ECS.registerSystem("Needs", Systems.needs.update);
 function loop(action) {
   gameEl.innerHTML = "";
 
-  if (action) takeAction(action);
-
-  describeWorld();
-
-  let need = describeYou();
-
-  let nextAction = assessPlan(need);
   timePasses();
+  if (action) takeAction(action);
+  describeWorld();
+  let need = describeYou();
+  let nextAction = assessPlan(need);
 
-  let p = document.createElement("p");
-  p.innerText = "Press any key for next tick";
-  gameEl.appendChild(p);
+  render("Press any key for next tick");
   ECS.debug();
+
   return nextAction;
 }
 
 function describeWorld() {
-  let p = document.createElement("p");
-  p.innerText = "You see\n" + Systems.describe("WORLD");
-  gameEl.appendChild(p);
+  render("You see\n" + Systems.describe("WORLD"));
 }
 
 function describeYou() {
@@ -161,9 +156,7 @@ function describeYou() {
     .children("PLAYER", ["Describe"])
     .map(Systems.describe)
     .join("\n");
-  let p1 = document.createElement("p");
-  p1.innerText = "You  have:\n" + (inventory || "nothing");
-  gameEl.appendChild(p1);
+  render("You  have:\n" + (inventory || "nothing"));
 
   let [need, degree] = Systems.needs.status("PLAYER");
   let descriptions = {
@@ -172,33 +165,35 @@ function describeYou() {
     companionship: "lonely",
     none: "fine"
   };
-  let p2 = document.createElement("p");
-  p2.innerText =
-    "You feel " + (degree >= 5 ? "very " : " ") + descriptions[need];
-  gameEl.appendChild(p2);
+  render("You feel " + (degree >= 5 ? "very " : " ") + descriptions[need]);
   return need;
 }
 
 function assessPlan(need) {
   let [steps, plan] = Systems.logic.run({ need: need, steps: [] }, "PLAYER");
-  let p = document.createElement("p");
-  p.innerText = "What should you do?\n\n" + steps.join("\n");
-  gameEl.appendChild(p);
+  render("What should you do?\n\n" + steps.join("\n"));
   return plan;
 }
 
 function takeAction(action) {
   action.updates();
 
-  let p = document.createElement("p");
-  p.innerText = "You " + action.describe;
-  gameEl.appendChild(p);
+  render("You " + action.describe);
 }
 
 function timePasses() {
-  return ECS.tick();
+  let updates = ECS.tick();
+
+  if (updates) {
+    render(updates.filter(x => !!x).join("\n"));
+  }
 }
 
+function render(text) {
+  let p = document.createElement("p");
+  p.innerText = text;
+  gameEl.appendChild(p);
+}
 let nextAction = loop();
 window.addEventListener("keydown", () => {
   nextAction = loop(nextAction);

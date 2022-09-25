@@ -74,15 +74,15 @@ Systems.food = {
   }
 };
 
-// TODO maybe return the results of onMax to perform after tick()
 Systems.age = {
   advance() {
-    ECS.query(["Aging"])
-      .map(ECS.entity)
-      .forEach(e => {
-        const { age, max, onMax } = e.get("Aging");
-        e.get("Aging").age++;
-        if (age >= max) onMax();
-      });
+    return ECS.query(["Aging"])
+      .map(id => {
+        const { age, max, onMax } = ECS.entity(id).get("Aging");
+        ECS.entity(id).get("Aging").age++;
+        if (age >= max) return onMax();
+      })
+      .filter(x => !!x)
+      .join("\n");
   }
 };
