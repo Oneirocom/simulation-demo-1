@@ -94,6 +94,9 @@ const Actions = {
       ECS.addEntity("CAMPFIRE", [
         ECS.Components.Describe({ name: "A burning campfire" }),
         ECS.Components.HeatSource(),
+        ECS.Components.Aging(3, () => {
+          ECS.removeEntity("CAMPFIRE");
+        }),
         ECS.Components.Parent("WORLD")
       ]);
     }
@@ -122,6 +125,11 @@ const Actions = {
   }
   // TODO add more action handlers
 };
+
+///////LOOOP////////
+
+ECS.registerSystem("Age", Systems.age.advance);
+ECS.registerSystem("Needs", Systems.needs.update);
 
 function loop(action) {
   gameEl.innerHTML = "";
@@ -188,7 +196,7 @@ function takeAction(action) {
 }
 
 function timePasses() {
-  // TODO "age" needs (based on context) and fire (removeEntity when epired)
+  return ECS.tick();
 }
 
 let nextAction = loop();

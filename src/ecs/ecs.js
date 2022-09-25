@@ -1,9 +1,31 @@
 const entitiesByComponent = new Map();
 export const Components = {};
 const entities = new Map();
+const Systems = new Map();
 
 export function registerComponent(key, fn) {
-  Components[key] = v => [key, fn(v)];
+  Components[key] = (...v) => [key, fn.apply(this, v)];
+}
+
+/**
+ * Registered systems will be called each `ECS.tick()`
+ *
+ * Provided callbacks are ran in the order they are registered
+ *
+ * @param {string} key
+ * @param {fn} callback
+ */
+export function registerSystem(key, fn) {
+  // TODO consider adding a priority instead of using call order
+  Systems.set(key, fn);
+}
+
+/**
+ * Call to progress all registered systems
+ */
+export function tick() {
+  Systems.forEach(cb => cb());
+  // TODO maybe return the results to run on the caller
 }
 
 export function init(startingScene) {

@@ -7,3 +7,8 @@ ECS.registerComponent("BehaviorTree", v => v);
 ECS.registerComponent("Burnable", () => true);
 ECS.registerComponent("HeatSource", () => true);
 ECS.registerComponent("Edible", () => true);
+ECS.registerComponent("Aging", (max, onMax) => ({
+  age: 0,
+  max,
+  onMax
+}));

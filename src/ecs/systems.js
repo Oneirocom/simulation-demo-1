@@ -18,12 +18,23 @@ Systems.describe = id => {
 Systems.needs = {
   needsHierarchy: ["exposure", "hunger", "companionship"],
   threshold: 3,
-  status: function(id) {
+  status(id) {
     let c = ECS.entity(id).get("Needs");
     let currentSituation = [...this.needsHierarchy]
       .map(k => [k, c[k]])
-      .find(([k, v]) => v > this.threshold);
+      .find(([_k, v]) => v > this.threshold);
     return currentSituation || ["none", 0];
+  },
+  tickExposure() {
+    if (!ECS.query(["HeatSource"]).length)
+      ECS.entity("PLAYER").get("Needs").exposure++;
+  },
+  tickHunger() {
+    ECS.entity("PLAYER").get("Needs").hunger += 0.5;
+  },
+  update() {
+    Systems.needs.tickExposure();
+    Systems.needs.tickHunger();
   }
 };
 
@@ -60,5 +71,18 @@ Systems.food = {
   eat() {
     ECS.removeEntity(Systems.placement.children("PLAYER", ["Edible"])[0]);
     ECS.update("PLAYER", "Needs", needs => ({ ...needs, hunger: 0 }));
+  }
+};
+
+// TODO maybe return the results of onMax to perform after tick()
+Systems.age = {
+  advance() {
+    ECS.query(["Aging"])
+      .map(ECS.entity)
+      .forEach(e => {
+        const { age, max, onMax } = e.get("Aging");
+        e.get("Aging").age++;
+        if (age >= max) onMax();
+      });
   }
 };
