@@ -5,7 +5,7 @@
     "module": "ESNext",
     "lib": ["ESNext", "DOM"],
     "moduleResolution": "Node",
-    "strict": true,
+    "strict": false,
     "skipLibCheck": true,
     "sourceMap": true,
     "resolveJsonModule": true,
