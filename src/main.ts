@@ -90,7 +90,6 @@ class ProximityComponent extends ex.Component {
   // BUG: when the fire goes away while you are near it and you still have wood, touching never gets unset
   onAdd(e: ex.Entity): void {
     e.on("collisionstart", function (ev) {
-      console.log("COLLISION");
       ev.target.get(ProximityComponent).touching.add(ev.other);
     });
     e.on("collisionend", function (ev) {
@@ -167,7 +166,6 @@ class SeekSystem extends ex.System {
 
     for (let entity of entities) {
       const seek = entity.get(SeekComponent);
-      console.log("Seeking ", seek?.target);
       const found = isNear(entity, seek?.target);
 
       if (found) {
@@ -467,8 +465,6 @@ const makeNpc = (name, offset, needs) => {
     .addComponent(new CollectorComponent())
     .addComponent(new BTComponent(npcBT))
     .addComponent(new ProximityComponent());
-
-  console.log("ACTOR", actor);
 
   actor.on("precollision", function (ev) {
     // nudge to prevent "getting stuck"
