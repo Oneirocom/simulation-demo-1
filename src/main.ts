@@ -176,12 +176,8 @@ class SeekSystem extends ex.System {
         // Might still have an issue with ordering though if adding a seek happens before current seek is removed?
         entity.removeComponent("seek", true);
       } else {
-        entity.vel =
-          seek?.target.pos ||
-          entity.vel
-            .sub(entity.pos)
-            .normalize()
-            .scale(seek?.speed || 1);
+        // todo this scaling here doesnt make sense, but was needed to get the NPC to move at any kind of decent speed.  Not sure why.
+        entity.vel = seek.target.pos.sub(entity.pos).normalize().scale(500);
       }
     }
   }
@@ -315,6 +311,7 @@ class BTSystem extends ex.System {
   priority = 10;
   systemType = ex.SystemType.Update;
 
+  // reset entity action when action is finished.
   onDone = (entity) => (entity.get(BTComponent).currentAction = null);
 
   elapsedTime = 0;
@@ -326,6 +323,7 @@ class BTSystem extends ex.System {
 
     entities.forEach((e) => {
       let { key, fn } = BT.run(e.get(BTComponent).bt, { entity: e, delta });
+
       if (key !== e.get(BTComponent).currentAction) {
         fn(this.onDone.bind(this, e));
         console.debug(e.name, "New action:", key);
@@ -357,7 +355,7 @@ const goToAction = (key) =>
     key: "go to " + key,
     fn: (done) => {
       entity.addComponent(
-        new SeekComponent({ speed: 100, target, onHit: () => done() })
+        new SeekComponent({ speed: 0.5, target, onHit: () => done() })
       );
     },
   }));
@@ -408,7 +406,7 @@ const getWarmTree = [
     ]
   ),
   BT.node(locate(queries.combustibleResource), [
-    goToAction("combustibleResource"),
+    goToAction(Constants.COMBUSTIBLE_RESOURCE),
   ]),
 ];
 
@@ -490,8 +488,8 @@ const makeNpc = (name, offset, needs) => {
 };
 
 const npc1 = makeNpc("npc1", ex.vec(-20, 20), { exposure: 5, hunger: 9 });
-const npc2 = makeNpc("npc2", ex.vec(20, 20), { exposure: 2, hunger: 2 });
-const npc3 = makeNpc("npc3", ex.vec(0, -20), { exposure: 0, hunger: 5 });
+// const npc2 = makeNpc("npc2", ex.vec(20, 20), { exposure: 2, hunger: 2 });
+// const npc3 = makeNpc("npc3", ex.vec(0, -20), { exposure: 0, hunger: 5 });
 
 /**
  * Check if entity is at an entity or an entity with the given tag
@@ -566,7 +564,7 @@ game.add(forest);
 game.add(field);
 game.add(firePit);
 game.add(npc1);
-game.add(npc2);
-game.add(npc3);
+// game.add(npc2);
+// game.add(npc3);
 
 game.start();
