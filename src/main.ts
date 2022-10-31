@@ -177,7 +177,10 @@ class SeekSystem extends ex.System {
         entity.removeComponent("seek", true);
       } else {
         // todo this scaling here doesnt make sense, but was needed to get the NPC to move at any kind of decent speed.  Not sure why.
-        entity.vel = seek.target.pos.sub(entity.pos).normalize().scale(500);
+        entity.vel = seek.target.pos
+          .sub(entity.pos)
+          .normalize()
+          .scale(seek.speed);
       }
     }
   }
@@ -355,7 +358,9 @@ const goToAction = (key) =>
     key: "go to " + key,
     fn: (done) => {
       entity.addComponent(
-        new SeekComponent({ speed: 0.5, target, onHit: () => done() })
+        // todo have the speed on the entity so the character can set at what speed it does things.
+        // Maybe faster speed will burn through more energy faster leading to hunger more quickly?
+        new SeekComponent({ speed: 200, target, onHit: () => done() })
       );
     },
   }));
@@ -488,8 +493,8 @@ const makeNpc = (name, offset, needs) => {
 };
 
 const npc1 = makeNpc("npc1", ex.vec(-20, 20), { exposure: 5, hunger: 9 });
-// const npc2 = makeNpc("npc2", ex.vec(20, 20), { exposure: 2, hunger: 2 });
-// const npc3 = makeNpc("npc3", ex.vec(0, -20), { exposure: 0, hunger: 5 });
+const npc2 = makeNpc("npc2", ex.vec(20, 20), { exposure: 2, hunger: 2 });
+const npc3 = makeNpc("npc3", ex.vec(0, -20), { exposure: 0, hunger: 5 });
 
 /**
  * Check if entity is at an entity or an entity with the given tag
@@ -564,7 +569,7 @@ game.add(forest);
 game.add(field);
 game.add(firePit);
 game.add(npc1);
-// game.add(npc2);
-// game.add(npc3);
+game.add(npc2);
+game.add(npc3);
 
 game.start();
