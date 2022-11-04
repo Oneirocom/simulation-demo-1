@@ -26,11 +26,16 @@
   },
   "homepage": "https://github.com/excaliburjs/template-ts-vite#readme",
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.42.0",
+    "@typescript-eslint/parser": "^5.42.0",
+    "eslint": "^8.26.0",
+    "eslint-config-prettier": "^8.5.0",
     "excalibur": "0.27.0",
     "typescript": "4.8.4",
     "vite": "2.9.15"
   },
   "dependencies": {
-    "@excaliburjs/testing": "^0.25.0"
+    "@excaliburjs/testing": "^0.25.0",
+    "prettier": "^2.7.1"
   }
 }
