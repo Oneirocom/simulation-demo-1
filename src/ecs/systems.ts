@@ -208,7 +208,6 @@ export class BTSystem extends ex.System {
 
     
     entities.forEach((e) => {
-      console.log("BT entities", e.get(Components.BTComponent).bt)
       const { key, fn } = run(e.get(Components.BTComponent).bt, {
         ...this.context,
         entity: e,
