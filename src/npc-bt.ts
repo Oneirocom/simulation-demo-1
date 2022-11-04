@@ -1,4 +1,4 @@
-import BT from "./bt";
+import {action, node } from "./bt";
 import * as Components from "./ecs/components";
 import * as Systems from "./ecs/systems";
 import Constants from "./constants";
@@ -9,7 +9,7 @@ import Constants from "./constants";
 
 // NOTE these actions rely on queries being set in the game and made availble via the bb!
 
-const doNothing = BT.action(() => ({
+const doNothing = action(() => ({
   key: "doNothing",
   fn: () => console.log("no actions"),
 }));
@@ -18,7 +18,7 @@ const doNothing = BT.action(() => ({
  * Relies on a `target` getting set on the blackboard
  */
 const goToAction = (key) =>
-  BT.action(({ entity, target }) => ({
+  action(({ entity, target }) => ({
     key: "go to " + key,
     fn: (done) => {
       entity.addComponent(
@@ -34,7 +34,7 @@ const goToAction = (key) =>
   }));
 
 /**
- * Predicate for a BT.Node, attempts to find an entity by supplied query,
+ * Predicate for a Node, attempts to find an entity by supplied query,
  * setting it as target in the blackboard if successful
  */
 const locate = (query: ex.Query, bb: any): boolean => {
@@ -52,24 +52,24 @@ const locate = (query: ex.Query, bb: any): boolean => {
 // TODO this would be nicer with a proper BT with select and sequence nodes
 const getWarmTree = [
   // if at heat source, enjoy
-  BT.node(
+  node(
     ({ entity }) => Systems.SeekSystem.isNear(entity, Constants.HEATSOURCE),
     [doNothing]
   ),
   // if heat source, go to it
-  BT.node(
+  node(
     (bb) => locate(bb.queries.heatSources, bb),
     [goToAction("heatsource")]
   ),
   // else make fire if possible
-  BT.node(
+  node(
     ({ entity }) =>
       Systems.CollectorSystem.hasInventory(entity, Constants.COMBUSTIBLE),
     [
-      BT.node(
+      node(
         ({ entity }) => Systems.SeekSystem.isNear(entity, Constants.FIRE_ZONE),
         [
-          BT.action((bb) => ({
+          action((bb) => ({
             key: "buildfire",
             fn: (done) => {
               Systems.CollectorSystem.removeInventory(
@@ -83,13 +83,13 @@ const getWarmTree = [
           })),
         ]
       ),
-      BT.node(
+      node(
         (bb) => locate(bb.queries.fireZones, bb),
         [goToAction("heatzone")]
       ),
     ]
   ),
-  BT.node(
+  node(
     (bb) => locate(bb.queries.combustibleResource, bb),
     [goToAction(Constants.COMBUSTIBLE_RESOURCE)]
   ),
@@ -97,11 +97,11 @@ const getWarmTree = [
 
 const eatTree = [
   // eat food if you have it
-  BT.node(
+  node(
     ({ entity }) =>
       Systems.CollectorSystem.hasInventory(entity, Constants.EDIBLE),
     [
-      BT.action((bb) => ({
+      action((bb) => ({
         key: "eatFood",
         fn: (done) => {
           Systems.CollectorSystem.removeInventory(bb.entity, Constants.EDIBLE);
@@ -112,20 +112,20 @@ const eatTree = [
     ]
   ),
   // find food
-  BT.node(
+  node(
     (bb) => locate(bb.queries.edibleResource, bb),
     [goToAction("edibleResource")]
   ),
 ];
 
 export default [
-  BT.node(
+  node(
     ({ entity }) =>
       Systems.NeedsSystem.status(entity.get(Components.NeedsComponent)).need ===
       "exposure",
     getWarmTree
   ),
-  BT.node(
+  node(
     ({ entity }) =>
       Systems.NeedsSystem.status(entity.get(Components.NeedsComponent)).need ===
       "hunger",

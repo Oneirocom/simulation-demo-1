@@ -1,7 +1,8 @@
-import BT from "../bt";
+import { run } from "../bt";
 import * as ex from "excalibur";
 import * as Components from "./components";
 import Constants from "../constants";
+import { Entity } from "excalibur";
 
 //
 /////////// SYSTEMS //////////////
@@ -200,13 +201,13 @@ export class BTSystem extends ex.System {
 
   elapsedTime = 0;
 
-  update(entities, delta) {
+  update(entities: Entity[], delta) {
     this.elapsedTime += delta;
     if (this.elapsedTime < 1000) return;
     this.elapsedTime = 0;
 
     entities.forEach((e) => {
-      const { key, fn } = BT.run(e.get(Components.BTComponent).bt, {
+      const { key, fn } = run(e.get(Components.BTComponent).bt, {
         ...this.context,
         entity: e,
         delta,
