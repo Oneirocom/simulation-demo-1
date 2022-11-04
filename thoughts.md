@@ -14,3 +14,19 @@ Narrative System
 - narrative system adds the event into a queue
 - items from queue are sent off one at a time to argos spell
 - on response from argos, result is printed to a narrative UI somewhere on the screen
+
+Trading system
+
+Add ResourceComponent (with count) to Collector.
+Add DominanceComponent as integer.
+
+When Collectors collide with other Collectors run trading rules:
+
+- A has what B wants and B has what A wants
+  -- trade
+- A has what B wants
+  -- B has high dominance, A has low dominance
+  --- B steals (aka A "offers" to commander)
+
+Somehow only want to run in one direction (ie. A collides with B but not also B collides with A)
+Consider representing rules in a trie for better effciency
