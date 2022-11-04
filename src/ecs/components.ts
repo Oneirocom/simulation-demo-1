@@ -1,4 +1,4 @@
-import BT from "../bt";
+import { Action, Node } from "../behaviourTree/bt";
 import * as ex from "excalibur";
 
 //
@@ -81,7 +81,7 @@ export class BTComponent extends ex.Component {
    * BT action nodes should return type {key: string, fn: () => any}
    * The key should be unique across actions and is used as the current action
    */
-  constructor(bt: (BT.Action | BT.Node)[]) {
+  constructor(bt: (Action | Node)[]) {
     super();
     this.bt = bt;
     this.currentAction = null;

@@ -1,7 +1,7 @@
 import {action, node } from "./bt";
-import * as Components from "./ecs/components";
-import * as Systems from "./ecs/systems";
-import Constants from "./constants";
+import * as Components from "../ecs/components";
+import * as Systems from "../ecs/systems";
+import Constants from "../constants";
 
 //
 /////////// NPC BT //////////////

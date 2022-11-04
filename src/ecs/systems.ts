@@ -1,4 +1,4 @@
-import { run } from "../bt";
+import { run } from "../behaviourTree/bt";
 import * as ex from "excalibur";
 import * as Components from "./components";
 import Constants from "../constants";

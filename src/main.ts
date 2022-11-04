@@ -2,7 +2,7 @@ import * as ex from "excalibur";
 import * as Components from "./ecs/components";
 import * as Systems from "./ecs/systems";
 import Constants from "./constants";
-import npcBT from "./npc-bt";
+import npcBT from "./behaviourTree/npc-bt";
 import { forest } from "./actors/forest";
 
 export const game = new ex.Engine({
