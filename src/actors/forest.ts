@@ -1,7 +1,7 @@
 import * as ex from "excalibur";
 import * as Components from "../ecs/components";
 import Constants from "../constants";
-import { game } from "../main";
+import { game } from "../game";
 
 export const forest = new ex.Actor({
   name: "forest",

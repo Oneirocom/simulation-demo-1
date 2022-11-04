@@ -1,14 +1,12 @@
 import * as ex from "excalibur";
-import * as Components from "./ecs/components";
 import * as Systems from "./ecs/systems";
 import Constants from "./constants";
-import npcBT from "./behaviourTree/npc-bt";
 import { forest } from "./actors/forest";
-
-export const game = new ex.Engine({
-  displayMode: ex.DisplayMode.FillScreen,
-  backgroundColor: ex.Color.Viridian
-});
+import { game } from "./game";
+import { makeNpc } from "./actors/makeNpc";
+import { field } from "./actors/field";
+import { firePit } from "./actors/firePit";
+import { fire } from "./actors/fire";
 
 /**
  * Optimization to performantly query elements by tags/components
@@ -30,87 +28,6 @@ const queries = {
   ])
 };
 
-//
-/////////// ENTITIES //////////////
-//
-
-const makeNpc = (name, offset, needs) => {
-  const actor = new ex.Actor({
-    name: name,
-    pos: ex.vec(game.drawWidth / 2, 100).add(offset),
-    vel: ex.Vector.Zero,
-    width: 30,
-    height: 30,
-    color: ex.Color.Red,
-    collisionType: ex.CollisionType.Active
-  });
-
-  actor
-    .addComponent(new Components.NeedsComponent(needs))
-    .addComponent(new Components.CollectorComponent())
-    .addComponent(new Components.BTComponent(npcBT))
-    .addComponent(new Components.ProximityComponent());
-
-  actor.on("precollision", function(ev) {
-    // nudge to prevent "getting stuck"
-    // TODO this doesn't work that great...
-    if (ev.target.vel.equals(ex.Vector.Zero)) return;
-
-    const nudge = ev.target.pos
-      .sub(ev.other.pos)
-      .normalize()
-      .perpendicular()
-      .scale(2);
-    ev.target.pos.addEqual(nudge);
-  });
-
-  const label = new ex.Label({
-    text: name,
-    pos: ex.vec(-50, -30),
-    font: new ex.Font({ size: 16, unit: ex.FontUnit.Px })
-  });
-  actor.addChild(label);
-
-  return actor;
-};
-
-const field = new ex.Actor({
-  name: "field",
-  pos: ex.vec(game.drawWidth - game.drawWidth / 4 / 2, game.drawHeight / 2),
-  width: game.drawWidth / 4,
-  height: game.drawHeight,
-  color: ex.Color.Yellow,
-  collisionType: ex.CollisionType.Fixed
-})
-  .addComponent(
-    new Components.ResourceComponent({
-      name: "Food",
-      tags: [Constants.EDIBLE],
-      color: ex.Color.Green
-    })
-  )
-  .addTag(Constants.EDIBLE_RESOURCE);
-
-const firePit = new ex.Actor({
-  name: "firePit",
-  pos: ex.vec(game.drawWidth / 2, (game.drawHeight * 2) / 3),
-  width: 50,
-  height: 50,
-  color: ex.Color.Gray,
-  collisionType: ex.CollisionType.Fixed
-});
-firePit.addTag(Constants.FIRE_ZONE);
-
-const fire = new ex.Actor({
-  name: "campFire",
-  pos: firePit.pos.clone(),
-  width: 30,
-  height: 30,
-  color: ex.Color.Orange,
-  collisionType: ex.CollisionType.Fixed,
-  radius: 30
-}).addTag(Constants.HEATSOURCE);
-
 // TODO use LifeTime component instead of settimeout
 const makeCampFire = () => {
   game.add(fire);
@@ -127,7 +44,6 @@ game.currentScene.world.add(new Systems.SeekSystem());
 // These get put into each bt blackboard
 // passing makeCampFire might be ugly
 game.currentScene.world.add(new Systems.BTSystem({ makeCampFire, queries }));
-
 game.add(forest);
 game.add(field);
 game.add(firePit);
