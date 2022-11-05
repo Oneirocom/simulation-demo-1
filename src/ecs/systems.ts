@@ -206,7 +206,6 @@ export class BTSystem extends ex.System {
     if (this.elapsedTime < 1000) return;
     this.elapsedTime = 0;
 
-    
     entities.forEach((e) => {
       const { key, fn } = run(e.get(Components.BTComponent).bt, {
         ...this.context,

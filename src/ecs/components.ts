@@ -1,5 +1,6 @@
 import { Action, Node } from "../behaviourTree/bt";
 import * as ex from "excalibur";
+import Constants from "../constants";
 
 //
 /////////// COMPONENTS //////////////
@@ -23,7 +24,7 @@ export class CollectorComponent extends ex.Component {
 
   // TODO instead of event listeners, add a component that has collision data on it
   onAdd(e: ex.Entity) {
-    e.on("collisionstart", ev => {
+    e.on("collisionstart", (ev) => {
       if (ev.other.get(ResourceComponent))
         this.inventory.add(ev.other.get(ResourceComponent).resource);
     });
@@ -33,14 +34,22 @@ export class CollectorComponent extends ex.Component {
 }
 
 /**
- * "Resources" are objects of any kind and can be used in any way
+ * Allows an entity to provide a type of resource.
+ * "Resources" are objects that can used in any way
+ * Their `tag`s will be used to describe them (TODO which isn't a great solution...)
  */
 export class ResourceComponent extends ex.Component {
   type = "resource";
-  resource: any;
-  constructor(resource: any) {
+  resource: { tags: string[] };
+  constructor(resource) {
     super();
     this.resource = resource;
+  }
+
+  describe() {
+    return this.resource.tags
+      .map((tag) => `provides something ${tag}`)
+      .join(" and ");
   }
 }
 
@@ -57,10 +66,10 @@ export class ProximityComponent extends ex.Component {
 
   // BUG: when the fire goes away while you are near it and you still have wood, touching never gets unset
   onAdd(e: ex.Entity): void {
-    e.on("collisionstart", function(ev) {
+    e.on("collisionstart", function (ev) {
       ev.target.get(ProximityComponent).touching.add(ev.other);
     });
-    e.on("collisionend", function(ev) {
+    e.on("collisionend", function (ev) {
       ev.target.get(ProximityComponent).touching.delete(ev.other);
     });
   }
@@ -75,7 +84,7 @@ export class NeedsComponent extends ex.Component {
 
 export class BTComponent extends ex.Component {
   type = "BT";
-  bt: any;
+  bt: (Action | Node)[];
   currentAction: null;
   /**
    * BT action nodes should return type {key: string, fn: () => any}
@@ -85,6 +94,10 @@ export class BTComponent extends ex.Component {
     super();
     this.bt = bt;
     this.currentAction = null;
+  }
+
+  describe() {
+    return "a sentient being";
   }
 }
 
@@ -101,7 +114,7 @@ export class SeekComponent extends ex.Component {
   constructor({
     speed,
     target,
-    onHit
+    onHit,
   }: {
     speed: number;
     target: ex.Actor;
@@ -111,5 +124,27 @@ export class SeekComponent extends ex.Component {
     this.speed = speed;
     this.target = target;
     this.onHit = onHit;
+  }
+}
+
+/**
+ * Descriptions for tags
+ *
+ * Components know how to describe themselves, but we don't own TagComponent
+ * Rather than monkeypatch it, use this function
+ * QUESTION: I tried following this to add to the Component interface, but it didn't work
+ * https://medium.com/ringcentral-developers/how-to-extend-an-existing-typescript-class-ef2bfe4b6690
+ */
+export function describeTagComponent(
+  c: ex.TagComponent<string, string>
+): string {
+  switch (c.type) {
+    case Constants.HEATSOURCE:
+      return "provides heat";
+      break;
+
+    default:
+      return null;
+      break;
   }
 }

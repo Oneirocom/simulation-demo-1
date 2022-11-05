@@ -2,6 +2,7 @@ import * as ex from "excalibur";
 import * as Components from "../ecs/components";
 import npcBT from "../behaviourTree/npc-bt";
 import { game } from "../game";
+import Constants from "../constants";
 
 //
 /////////// ENTITIES //////////////
@@ -14,20 +15,20 @@ export const makeNpc = (name, offset, needs) => {
     width: 30,
     height: 30,
     color: ex.Color.Red,
-    collisionType: ex.CollisionType.Active
+    collisionType: ex.CollisionType.Active,
   });
 
   actor
     .addComponent(new Components.NeedsComponent(needs))
     .addComponent(new Components.CollectorComponent())
     .addComponent(new Components.BTComponent(npcBT))
-    .addComponent(new Components.ProximityComponent());
+    .addComponent(new Components.ProximityComponent())
+    .addTag(Constants.DESCRIBABLE);
 
   actor.on("precollision", function (ev) {
     // nudge to prevent "getting stuck"
     // TODO this doesn't work that great...
-    if (ev.target.vel.equals(ex.Vector.Zero))
-      return;
+    if (ev.target.vel.equals(ex.Vector.Zero)) return;
 
     const nudge = ev.target.pos
       .sub(ev.other.pos)
@@ -40,7 +41,7 @@ export const makeNpc = (name, offset, needs) => {
   const label = new ex.Label({
     text: name,
     pos: ex.vec(-50, -30),
-    font: new ex.Font({ size: 16, unit: ex.FontUnit.Px })
+    font: new ex.Font({ size: 16, unit: ex.FontUnit.Px }),
   });
   actor.addChild(label);
 
