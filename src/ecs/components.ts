@@ -1,6 +1,7 @@
 import { Action, Node } from "../behaviourTree/bt";
 import * as ex from "excalibur";
 import Constants from "../constants";
+import { NeedsSystem } from "./systems";
 
 //
 /////////// COMPONENTS //////////////
@@ -10,13 +11,14 @@ import Constants from "../constants";
  * This component adds the concept of "inventory"
  * This inventory gets filled with the objects from bumping into ResourceComponent entities.
  * In this case they are just objects with a name and color to render and a list of tags.
+ * Their `tag`s will be used to describe them (TODO which isn't a great solution...)
  *
  * TODO consider having the reource be factory function so the inventory can contain
  * complete entities that can be inspected via their components rather than names.
  */
 export class CollectorComponent extends ex.Component {
   type = "collector";
-  inventory: Set<unknown>;
+  inventory: Set<{ tags: string[] }>;
   constructor() {
     super();
     this.inventory = new Set();
@@ -31,12 +33,18 @@ export class CollectorComponent extends ex.Component {
   }
 
   // TODO clean up with onRemove (no reason to remove it for now though)
+  describe() {
+    return [...this.inventory]
+      .map((i) => "has something " + i.tags.join(" and "))
+      .join(" and also ");
+  }
 }
 
 /**
  * Allows an entity to provide a type of resource.
  * "Resources" are objects that can used in any way
  * Their `tag`s will be used to describe them (TODO which isn't a great solution...)
+ * Consider adding `count`, `spawnRate` and `onEmpty`.
  */
 export class ResourceComponent extends ex.Component {
   type = "resource";
@@ -76,9 +84,23 @@ export class ProximityComponent extends ex.Component {
 }
 export class NeedsComponent extends ex.Component {
   type = "needs";
-  constructor(init: { hunger: number; exposure: number }) {
+  hunger: number;
+  exposure: number;
+  constructor({ hunger, exposure }) {
     super();
-    Object.assign(this, init);
+    this.hunger = hunger;
+    this.exposure = exposure;
+  }
+
+  describe() {
+    // TODO maybe only describe if this is the perspective entity?
+    const afflictions = Object.entries({
+      hungry: this.hunger,
+      cold: this.exposure,
+    })
+      .filter(([_k, v]) => v > NeedsSystem.threshold)
+      .map(([k, _v]) => k);
+    return afflictions.length > 0 ? "feels " + afflictions.join(" and ") : null;
   }
 }
 
@@ -86,6 +108,7 @@ export class BTComponent extends ex.Component {
   type = "BT";
   bt: (Action | Node)[];
   currentAction: null;
+  previousAction: null;
   /**
    * BT action nodes should return type {key: string, fn: () => any}
    * The key should be unique across actions and is used as the current action
@@ -93,11 +116,10 @@ export class BTComponent extends ex.Component {
   constructor(bt: (Action | Node)[]) {
     super();
     this.bt = bt;
-    this.currentAction = null;
   }
 
   describe() {
-    return "a sentient being";
+    return "is sentient";
   }
 }
 
@@ -125,6 +147,12 @@ export class SeekComponent extends ex.Component {
     this.target = target;
     this.onHit = onHit;
   }
+
+  // TODO might be nice, but not sure how to describe the target
+  // might be better to use the BT action instead
+  // describe() {
+  //   return "is looking for something " + ???;
+  // }
 }
 
 /**

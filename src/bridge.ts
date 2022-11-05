@@ -17,10 +17,18 @@ export function describeWorld(entities: ex.Entity[]) {
         .filter((x) => x);
     })
     .filter((x) => x.length > 0);
+
+  const string =
+    "The world has " +
+    description
+      .map((e) => "something that " + e.join(" and "))
+      .join(".\nIt also has ") +
+    ".";
+  console.log(string);
   return description;
 }
 function describeComponent(
-  component: ex.Component<string> & { describe?: () => string }
+  component: ex.Component<string> & { describe?: () => string | null }
 ): string | null {
   // NOTE components should know how to describe themselves, but for builtin ex components (like TagComponent) we have to do something different
   if (component.constructor === ex.TagComponent) {
