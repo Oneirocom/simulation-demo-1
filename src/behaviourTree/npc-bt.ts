@@ -8,36 +8,51 @@ import Constants from "../constants";
 //
 
 export const actions = {
-  LOCATE_FOOD: ({entity, target}) => ({
-    key: "LOCATE_FOOD",
+  SEEK_FOOD: ({ entity, target }) => ({
+    key: "SEEK_FOOD",
     description: "find something to eat",
-    fn: seekActionFn(entity, target),
+    fn: seekActionFn(entity, target, Constants.EDIBLE),
   }),
-  LOCATE_HEAT: ({entity, target}) => ({
-    key: "LOCATE_HEAT",
+  SEEK_WARMTH: ({ entity, target }) => ({
+    key: "SEEK_WARMTH",
     description: "get warm",
-    fn: seekActionFn(entity, target),
+    fn: seekActionFn(entity, target, null),
   }),
-  LOCATE_HEAT_ZONE: ({entity, target}) => ({
-    key: "LOCATE_HEAT_ZONE",
+  SEEK_HEAT_SOURCE: ({ entity, target }) => ({
+    key: "SEEk_HEAT_SOURCE",
     description: "find a place to make a fire",
-    fn: seekActionFn(entity, target),
+    fn: seekActionFn(entity, target, null),
   }),
-  LOCATE_COMBUSTIBLE: ({entity, target}) => ({
-    key: "LOCATE_COMBUSTIBLE",
+  SEEK_COMBUSTIBLE: ({ entity, target }) => ({
+    key: "SEEK_COMBUSTIBLE",
     description: "find something to burn",
-    fn: seekActionFn(entity, target),
+    fn: seekActionFn(entity, target, Constants.COMBUSTIBLE),
+  }),
+  BUILD_FIRE: (bb) => ({
+    key: "BUILD_FIRE",
+    description: "make a fire",
+    fn: (done) => {
+      // TODO super ugly, but works
+      const foundHeatSource = [...(bb.entity as ex.Entity).get(Components.ProximityComponent).nearBy].find(
+        (e: ex.Entity) => e.has(Components.HeatSourceComponent)
+      );
+      foundHeatSource.get(Components.HeatSourceComponent).addFuel(5)
+      Systems.CollectorSystem.removeInventory(bb.entity, Constants.COMBUSTIBLE);
+      return done();
+    },
   }),
 };
 
-function seekActionFn(entity, target) {
+function seekActionFn(entity: ex.Entity, target, desired_resource) {
   return (done) => {
+    entity.removeComponent("seek", true);
     entity.addComponent(
       // todo have the speed on the entity so the character can set at what speed it does things.
       // Maybe faster speed will burn through more energy faster leading to hunger more quickly?
       new Components.SeekComponent({
         speed: 200,
         target,
+        desired_resource,
         onHit: () => done(),
       })
     );
@@ -56,12 +71,19 @@ const doNothing = action(() => ({
  * Predicate for a Node, attempts to find an entity by supplied query,
  * setting it as target in the blackboard if successful
  */
-const locate = (query: ex.Query, bb: any): boolean => {
+const locate = (
+  query: ex.Query,
+  bb: any,
+  pred: (e: ex.Entity) => boolean = () => true
+): boolean => {
   // NOTE scope to "visible" or "near by" entities via spatial graph / collision box
-  const found = query.getEntities();
+  // TODO would be better to look through ResourceProviderComponents for one with desired resource (see todo where query is defined)
+  const found = query.getEntities().filter(pred);
   if (found.length) {
-    // TODO could choose randomly or closest, etc
-    bb.target = found[0];
+    const closestFirst = found.sort((a: ex.Actor, b: ex.Actor) =>
+      a.pos.distance(bb.entity.pos) > b.pos.distance(bb.entity.pos) ? 1 : -1
+    );
+    bb.target = closestFirst[0];
     return true;
   } else {
     return false;
@@ -72,13 +94,23 @@ const locate = (query: ex.Query, bb: any): boolean => {
 const getWarmTree = [
   // if at heat source, enjoy
   node(
-    ({ entity }) => Systems.SeekSystem.isNear(entity, Constants.HEATSOURCE),
+    ({ entity }) =>
+      Systems.ProximitySystem.isNear(
+        entity,
+        Constants.HEATSOURCE,
+        (e: ex.Entity) => e.get(Components.HeatSourceComponent).fuelLevel > 0
+      ),
     [doNothing]
   ),
-  // if heat source, go to it
+  // if fire source, go to it
   node(
-    (bb) => locate(bb.queries.heatSources, bb),
-    [action(actions.LOCATE_HEAT)]
+    (bb) =>
+      locate(
+        bb.queries.heatSources,
+        bb,
+        (e: ex.Entity) => e.get(Components.HeatSourceComponent).fuelLevel > 0
+      ),
+    [action(actions.SEEK_WARMTH)]
   ),
   // else make fire if possible
   node(
@@ -86,28 +118,19 @@ const getWarmTree = [
       Systems.CollectorSystem.hasInventory(entity, Constants.COMBUSTIBLE),
     [
       node(
-        ({ entity }) => Systems.SeekSystem.isNear(entity, Constants.FIRE_ZONE),
-        [
-          action((bb) => ({
-            key: "buildfire",
-            fn: (done) => {
-              Systems.CollectorSystem.removeInventory(
-                bb.entity,
-                Constants.COMBUSTIBLE
-              );
-              // TODO this is ugly, separate out actions, and return data commands to run those actions
-              bb.makeCampFire();
-              return done();
-            },
-          })),
-        ]
+        ({ entity }) =>
+          Systems.ProximitySystem.isNear(entity, Constants.HEATSOURCE),
+        [action(actions.BUILD_FIRE)]
       ),
-      node((bb) => locate(bb.queries.fireZones, bb), [action(actions.LOCATE_HEAT_ZONE)]),
+      node(
+        (bb) => locate(bb.queries.heatSources, bb),
+        [action(actions.SEEK_HEAT_SOURCE)]
+      ),
     ]
   ),
   node(
     (bb) => locate(bb.queries.combustibleResource, bb),
-    [action(actions.LOCATE_COMBUSTIBLE)]
+    [action(actions.SEEK_COMBUSTIBLE)]
   ),
 ];
 
@@ -130,7 +153,7 @@ const eatTree = [
   // find food
   node(
     (bb) => locate(bb.queries.edibleResource, bb),
-    [action(actions.LOCATE_FOOD)]
+    [action(actions.SEEK_FOOD)]
   ),
 ];
 

@@ -7,78 +7,66 @@ import { NeedsSystem } from "./systems";
 /////////// COMPONENTS //////////////
 //
 
+export type Resource = Record<string, unknown> & { tag: string };
+
 /**
- * This component adds the concept of "inventory"
- * This inventory gets filled with the objects from bumping into ResourceComponent entities.
- * In this case they are just objects with a name and color to render and a list of tags.
- * Their `tag`s will be used to describe them (TODO which isn't a great solution...)
- *
- * TODO consider having the reource be factory function so the inventory can contain
- * complete entities that can be inspected via their components rather than names.
+ * This component adds the concept of "inventory" which is filled with resources
+ * This inventory gets filled by seeking resource providers via the SeekSysstem.
+ * Resource `tag`s will be used to describe them (TODO which isn't a great solution...)
  */
 export class CollectorComponent extends ex.Component {
   type = "collector";
-  inventory: Set<{ tags: string[] }>;
-  constructor() {
-    super();
-    this.inventory = new Set();
-  }
+  // NOTE collectors can only carry 1 of each resource kind currently
+  inventory: Map<string, Resource> = new Map();
 
   // TODO instead of event listeners, add a component that has collision data on it
-  onAdd(e: ex.Entity) {
-    e.on("collisionstart", (ev) => {
-      if (ev.other.get(ResourceComponent))
-        this.inventory.add(ev.other.get(ResourceComponent).resource);
-    });
-  }
 
-  // TODO clean up with onRemove (no reason to remove it for now though)
   describe() {
     return [...this.inventory]
-      .map((i) => "has something " + i.tags.join(" and "))
+      .map(([i, _]) => "has something " + i)
       .join(" and also ");
   }
 }
 
 /**
- * Allows an entity to provide a type of resource.
- * "Resources" are objects that can used in any way
- * Their `tag`s will be used to describe them (TODO which isn't a great solution...)
- * Consider adding `count`, `spawnRate` and `onEmpty`.
+ * Allows an entity to provide one or more kinds of resources.
+ * Resource tags are referenced in SeekComponent's.
+ * Resource tags will be used to describe them (TODO which isn't a great solution...)
  */
-export class ResourceComponent extends ex.Component {
+export class ResourceProviderComponent extends ex.Component {
   type = "resource";
-  resource: { tags: string[] };
-  constructor(resource) {
+  resources: Map<string, Resource> = new Map();
+  constructor(resources: Resource[]) {
     super();
-    this.resource = resource;
+    resources.forEach((r) => this.resources.set(r.tag, r));
   }
 
+  // TODO consider way to add/remove resources at runtime
+  // TODO Consider adding `count`, `spawnRate` and `onEmpty`.
+
   describe() {
-    return this.resource.tags
+    return [...this.resources.keys()]
       .map((tag) => `provides something ${tag}`)
       .join(" and ");
   }
 }
 
 /**
- * Wip capturing "touching", should be better thought out
+ * Wip capturing "nearBy", should be better thought out
  */
 export class ProximityComponent extends ex.Component {
   public readonly type = "proximity";
-  public touching: Set<ex.Entity> = new Set();
+  public nearBy: Set<ex.Entity> = new Set();
   constructor() {
     super();
-    this.touching = new Set();
+    this.nearBy = new Set();
   }
 
-  // BUG: when the fire goes away while you are near it and you still have wood, touching never gets unset
   onAdd(e: ex.Entity): void {
-    e.on("collisionstart", function (ev) {
-      ev.target.get(ProximityComponent).touching.add(ev.other);
-    });
-    e.on("collisionend", function (ev) {
-      ev.target.get(ProximityComponent).touching.delete(ev.other);
+    e.on("collisionstart", function (ev: ex.CollisionStartEvent) {
+      const nearBy = ev.target.get(ProximityComponent).nearBy;
+      nearBy.add(ev.other);
+      ev.other.on("kill", () => nearBy.delete(ev.other));
     });
   }
 }
@@ -131,53 +119,61 @@ export class BTComponent extends ex.Component {
 /**
  * Makes an entity move towoards a target
  * onHit gets called on arrival
+ * May or may not include a specific desired resource
  */
 export class SeekComponent extends ex.Component {
   type = "seek";
   speed: number;
   target: ex.Actor;
+  desired_resource?: string;
   onHit: () => void;
 
   constructor({
     speed,
     target,
     onHit,
+    desired_resource,
   }: {
     speed: number;
     target: ex.Actor;
     onHit: () => void;
+    desired_resource?: string;
   }) {
     super();
     this.speed = speed;
     this.target = target;
     this.onHit = onHit;
+    if (desired_resource) this.desired_resource = desired_resource;
   }
-
-  // TODO might be nice, but not sure how to describe the target
-  // might be better to use the BT action instead
-  // describe() {
-  //   return "is looking for something " + ???;
-  // }
 }
 
 /**
- * Descriptions for tags
- *
- * Components know how to describe themselves, but we don't own TagComponent
- * Rather than monkeypatch it, use this function
- * QUESTION: I tried following this to add to the Component interface, but it didn't work
- * https://medium.com/ringcentral-developers/how-to-extend-an-existing-typescript-class-ef2bfe4b6690
+ * Makes an entity move towoards a target
+ * onHit gets called on arrival
+ * May or may not include a specific desired resource
  */
-export function describeTagComponent(
-  c: ex.TagComponent<string, string>
-): string {
-  switch (c.type) {
-    case Constants.HEATSOURCE:
-      return "provides heat";
-      break;
+export class HeatSourceComponent extends ex.Component {
+  type = Constants.HEATSOURCE;
+  fuelLevel: number;
+  burnRate: number;
+  capacity: number;
 
-    default:
-      return null;
-      break;
+  constructor(fuelLevel: number, burnRate = 0.2, capacity = 5) {
+    super();
+    this.fuelLevel = fuelLevel;
+    this.burnRate = burnRate;
+    this.capacity = capacity;
+  }
+
+  addFuel(amount: number) {
+    this.fuelLevel = Math.min(this.capacity, this.fuelLevel + amount)
+  }
+
+  describe() {
+    let d = "is providing heat";
+    if (this.fuelLevel > this.capacity * 0.75) d = "is providing lots of heat";
+    if (this.fuelLevel < this.capacity * 0.25) d = "is providing a small amount of heat";
+    if (this.fuelLevel === 0) d = "could provide heat";
+    return d;
   }
 }

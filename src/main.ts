@@ -1,5 +1,6 @@
 import { game } from "./game";
 import { MainScene } from "./scenes/mainScene";
+import { RandomScene } from "./scenes/randomScene";
 import Constants from "./constants";
 import * as Bridge from "./bridge";
 import { simulate } from "./config";
@@ -15,11 +16,19 @@ const onReady = () => {
   loadingEl.classList.add("hidden");
 };
 
-const mainScene = new MainScene(onReady);
-game.add("mainScene", mainScene);
-game.goToScene("mainScene");
+// Pick scene (TODO maybe pull from url?)
 
-const describableQuery = mainScene.world.queryManager.createQuery([
+// const scene = new MainScene(onReady);
+
+const scene = new RandomScene();
+// call onReady immediatly on random scene
+onReady();
+
+console.log("running scene:", scene.name);
+game.add(scene.name, scene);
+game.goToScene(scene.name);
+
+const describableQuery = scene.world.queryManager.createQuery([
   Constants.DESCRIBABLE,
 ]);
 
@@ -40,4 +49,5 @@ document.querySelector("#describe-world").addEventListener("click", (e) => {
   }
 });
 
+// game.showDebug(true)
 game.start();

@@ -4,6 +4,5 @@ export default {
   COMBUSTIBLE_RESOURCE: "combustibleResource",
   EDIBLE_RESOURCE: "edibleResource",
   EDIBLE: "edible",
-  FIRE_ZONE: "fireZone",
   DESCRIBABLE: "describable",
 };

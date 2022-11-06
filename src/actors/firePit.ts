@@ -1,6 +1,7 @@
 import * as ex from "excalibur";
 import Constants from "../constants";
 import { game } from "../game";
+import * as Components from "../ecs/components";
 
 export const firePit = new ex.Actor({
   name: "firePit",
@@ -10,5 +11,5 @@ export const firePit = new ex.Actor({
   color: ex.Color.Gray,
   collisionType: ex.CollisionType.Fixed,
 })
-  .addTag(Constants.FIRE_ZONE)
+  .addComponent(new Components.HeatSourceComponent(0))
   .addTag(Constants.DESCRIBABLE);

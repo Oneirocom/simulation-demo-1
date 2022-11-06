@@ -1,5 +1,4 @@
 import * as ex from "excalibur";
-import { describeTagComponent } from "./ecs/components";
 
 /**
  * Pure function that converts a list of entities into a description
@@ -34,10 +33,7 @@ export function descriptionToString(description) {
 function describeComponent(
   component: ex.Component<string> & { describe?: () => string | null }
 ): string | null {
-  // NOTE components should know how to describe themselves, but for builtin ex components (like TagComponent) we have to do something different
-  if (component.constructor === ex.TagComponent) {
-    return describeTagComponent(component);
-  } else if (component.describe) {
+  if (component.describe) {
     return component.describe();
   } else {
     return null;

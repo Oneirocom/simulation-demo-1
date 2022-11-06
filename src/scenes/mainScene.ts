@@ -1,6 +1,5 @@
 import { Engine, Scene, SceneActivationContext, vec } from "excalibur";
 import Constants from "../constants";
-import { fire } from "../actors/fire";
 import * as Systems from "../ecs/systems";
 import { game } from "../game";
 import { makeNpc } from "../actors/makeNpc";
@@ -25,9 +24,6 @@ const buildQueries = (world) => ({
   heatSources: world.queryManager.createQuery([
     Constants.HEATSOURCE
   ]),
-  fireZones: world.queryManager.createQuery([
-    Constants.FIRE_ZONE
-  ]),
   combustibleResource: world.queryManager.createQuery([
     Constants.COMBUSTIBLE_RESOURCE
   ]),
@@ -47,6 +43,8 @@ export class MainScene extends Scene {
   worldDescription: string
   sceneDescription: string
   onReady: () => null;
+
+  name = "mainScene";
 
   constructor(onReady) {
     super()

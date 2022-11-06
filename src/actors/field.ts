@@ -12,7 +12,7 @@ export const field = new ex.Actor({
   collisionType: ex.CollisionType.Fixed,
 })
   .addComponent(
-    new Components.ResourceComponent({
+    new Components.ResourceProviderComponent({
       name: "Food",
       tags: [Constants.EDIBLE],
       color: ex.Color.Green,

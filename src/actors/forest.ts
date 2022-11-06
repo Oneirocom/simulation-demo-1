@@ -12,7 +12,7 @@ export const forest = new ex.Actor({
   collisionType: ex.CollisionType.Fixed,
 })
   .addComponent(
-    new Components.ResourceComponent({
+    new Components.ResourceProviderComponent({
       name: "Wood",
       tags: [Constants.COMBUSTIBLE],
       color: ex.Color.fromRGB(139, 69, 19),
