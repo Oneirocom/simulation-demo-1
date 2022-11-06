@@ -9,13 +9,14 @@ export const field = new ex.Actor({
   width: game.drawWidth / 4,
   height: game.drawHeight,
   color: ex.Color.Yellow,
-  collisionType: ex.CollisionType.Fixed
+  collisionType: ex.CollisionType.Fixed,
 })
   .addComponent(
     new Components.ResourceComponent({
       name: "Food",
       tags: [Constants.EDIBLE],
-      color: ex.Color.Green
+      color: ex.Color.Green,
     })
   )
-  .addTag(Constants.EDIBLE_RESOURCE);
+  .addTag(Constants.EDIBLE_RESOURCE)
+  .addTag(Constants.DESCRIBABLE);

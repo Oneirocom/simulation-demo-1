@@ -9,14 +9,15 @@ export const forest = new ex.Actor({
   width: game.drawWidth / 4,
   height: game.drawHeight,
   color: ex.Color.Green,
-  collisionType: ex.CollisionType.Fixed
+  collisionType: ex.CollisionType.Fixed,
 })
   .addComponent(
     new Components.ResourceComponent({
       name: "Wood",
       tags: [Constants.COMBUSTIBLE],
-      color: ex.Color.fromRGB(139, 69, 19)
+      color: ex.Color.fromRGB(139, 69, 19),
     })
   )
   // NOTE some duplication here to make the locate by query BT helper simpler
-  .addTag(Constants.COMBUSTIBLE_RESOURCE);
+  .addTag(Constants.COMBUSTIBLE_RESOURCE)
+  .addTag(Constants.DESCRIBABLE);

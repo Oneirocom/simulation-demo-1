@@ -2,6 +2,7 @@ import { Actor, CollisionType, Color, Font, FontUnit, Label, vec, Vector } from 
 import * as Components from "../ecs/components";
 import npcBT from "../behaviourTree/npc-bt";
 import { game } from "../game";
+import Constants from "../constants";
 
 interface NpcActor extends Actor {
   metadata: Record<string, string>
@@ -27,7 +28,8 @@ export const makeNpc = async (name, offset, needs, _worldDescription) => {
     .addComponent(new Components.NeedsComponent(needs))
     .addComponent(new Components.CollectorComponent())
     .addComponent(new Components.BTComponent(npcBT))
-    .addComponent(new Components.ProximityComponent());
+    .addComponent(new Components.ProximityComponent())
+    .addTag(Constants.DESCRIBABLE);
 
   actor.on("precollision", function (ev) {
     // nudge to prevent "getting stuck"

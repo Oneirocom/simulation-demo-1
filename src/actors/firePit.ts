@@ -8,6 +8,7 @@ export const firePit = new ex.Actor({
   width: 50,
   height: 50,
   color: ex.Color.Gray,
-  collisionType: ex.CollisionType.Fixed
-});
-firePit.addTag(Constants.FIRE_ZONE);
+  collisionType: ex.CollisionType.Fixed,
+})
+  .addTag(Constants.FIRE_ZONE)
+  .addTag(Constants.DESCRIBABLE);
