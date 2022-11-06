@@ -1,3 +1,5 @@
+### NPC actions
+
 - food can give energy
 - some food needs to be cooked at a fire
 - characters burn through energy leading to hunger
@@ -6,7 +8,7 @@
 - characters can ponder and think when they are doing nothing
   - leisure tasks.
 
-Narrative System
+### Narrative System
 
 - narrative events happen whenever a new action is taken
 - narrative tags are created and sent off to the narrative system
@@ -15,7 +17,7 @@ Narrative System
 - items from queue are sent off one at a time to argos spell
 - on response from argos, result is printed to a narrative UI somewhere on the screen
 
-Trading system
+### Trading system
 
 Add ResourceComponent (with count) to Collector.
 Add DominanceComponent as integer.
@@ -32,4 +34,11 @@ Somehow only want to run in one direction (ie. A collides with B but not also B 
 Consider representing rules in a trie for better effciency
 
 Notes on naming things
+
 - for the story narrator, I am going to need to know who a character is. They arent just a sentient being, but a specific sentient being in the story. Unless I ground the language model in specifics, it could generate new names for thingd off the bat.
+
+### BizzaroScene
+
+no entity presets
+a set of required components that must exist in the scene
+randomly create entities with random components until all required components have been used at least once
