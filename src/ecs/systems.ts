@@ -196,8 +196,13 @@ export class BTSystem extends ex.System {
   }
 
   // reset entity action when action is finished.
-  onDone = (entity) =>
-    (entity.get(Components.BTComponent).currentAction = null);
+  // and store previous action for descriptions
+  onDone = (entity) => {
+    entity.get(Components.BTComponent).previousActionDescription = entity.get(
+      Components.BTComponent
+    ).currentActionDescription;
+    entity.get(Components.BTComponent).currentActionDescription = null;
+  };
 
   elapsedTime = 0;
 
@@ -207,7 +212,7 @@ export class BTSystem extends ex.System {
     this.elapsedTime = 0;
 
     entities.forEach((e) => {
-      const { key, fn } = run(e.get(Components.BTComponent).bt, {
+      const { key, fn, description} = run(e.get(Components.BTComponent).bt, {
         ...this.context,
         entity: e,
         delta,
@@ -217,6 +222,7 @@ export class BTSystem extends ex.System {
         fn(this.onDone.bind(this, e));
         console.debug(e.name, "New action:", key);
         e.get(Components.BTComponent).currentAction = key;
+        e.get(Components.BTComponent).currentActionDescription = description;
       }
     });
   }

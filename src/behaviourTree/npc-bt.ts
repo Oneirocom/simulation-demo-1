@@ -1,4 +1,4 @@
-import {action, node } from "./bt";
+import { action, node } from "./bt";
 import * as Components from "../ecs/components";
 import * as Systems from "../ecs/systems";
 import Constants from "../constants";
@@ -7,31 +7,50 @@ import Constants from "../constants";
 /////////// NPC BT //////////////
 //
 
+export const actions = {
+  LOCATE_FOOD: ({entity, target}) => ({
+    key: "LOCATE_FOOD",
+    description: "find something to eat",
+    fn: seekActionFn(entity, target),
+  }),
+  LOCATE_HEAT: ({entity, target}) => ({
+    key: "LOCATE_HEAT",
+    description: "get warm",
+    fn: seekActionFn(entity, target),
+  }),
+  LOCATE_HEAT_ZONE: ({entity, target}) => ({
+    key: "LOCATE_HEAT_ZONE",
+    description: "find a place to make a fire",
+    fn: seekActionFn(entity, target),
+  }),
+  LOCATE_COMBUSTIBLE: ({entity, target}) => ({
+    key: "LOCATE_COMBUSTIBLE",
+    description: "find something to burn",
+    fn: seekActionFn(entity, target),
+  }),
+};
+
+function seekActionFn(entity, target) {
+  return (done) => {
+    entity.addComponent(
+      // todo have the speed on the entity so the character can set at what speed it does things.
+      // Maybe faster speed will burn through more energy faster leading to hunger more quickly?
+      new Components.SeekComponent({
+        speed: 200,
+        target,
+        onHit: () => done(),
+      })
+    );
+  };
+}
+
 // NOTE these actions rely on queries being set in the game and made availble via the bb!
 
 const doNothing = action(() => ({
-  key: "doNothing",
+  key: "DO_NOTHING",
+  description: "relax",
   fn: () => console.log("no actions"),
 }));
-
-/**
- * Relies on a `target` getting set on the blackboard
- */
-const goToAction = (key) =>
-  action(({ entity, target }) => ({
-    key: "go to " + key,
-    fn: (done) => {
-      entity.addComponent(
-        // todo have the speed on the entity so the character can set at what speed it does things.
-        // Maybe faster speed will burn through more energy faster leading to hunger more quickly?
-        new Components.SeekComponent({
-          speed: 200,
-          target,
-          onHit: () => done(),
-        })
-      );
-    },
-  }));
 
 /**
  * Predicate for a Node, attempts to find an entity by supplied query,
@@ -59,7 +78,7 @@ const getWarmTree = [
   // if heat source, go to it
   node(
     (bb) => locate(bb.queries.heatSources, bb),
-    [goToAction("heatsource")]
+    [action(actions.LOCATE_HEAT)]
   ),
   // else make fire if possible
   node(
@@ -83,15 +102,12 @@ const getWarmTree = [
           })),
         ]
       ),
-      node(
-        (bb) => locate(bb.queries.fireZones, bb),
-        [goToAction("heatzone")]
-      ),
+      node((bb) => locate(bb.queries.fireZones, bb), [action(actions.LOCATE_HEAT_ZONE)]),
     ]
   ),
   node(
     (bb) => locate(bb.queries.combustibleResource, bb),
-    [goToAction(Constants.COMBUSTIBLE_RESOURCE)]
+    [action(actions.LOCATE_COMBUSTIBLE)]
   ),
 ];
 
@@ -114,7 +130,7 @@ const eatTree = [
   // find food
   node(
     (bb) => locate(bb.queries.edibleResource, bb),
-    [goToAction("edibleResource")]
+    [action(actions.LOCATE_FOOD)]
   ),
 ];
 

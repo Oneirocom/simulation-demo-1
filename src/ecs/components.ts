@@ -108,7 +108,8 @@ export class BTComponent extends ex.Component {
   type = "BT";
   bt: (Action | Node)[];
   currentAction: null;
-  previousAction: null;
+  currentActionDescription: string | null;
+  previousActionDescription: string | null;
   /**
    * BT action nodes should return type {key: string, fn: () => any}
    * The key should be unique across actions and is used as the current action
@@ -119,7 +120,11 @@ export class BTComponent extends ex.Component {
   }
 
   describe() {
-    return "is sentient";
+    let description = "is sentient";
+    if (this.currentActionDescription)
+      description +=
+        " and is currently trying to " + this.currentActionDescription;
+    return description;
   }
 }
 
