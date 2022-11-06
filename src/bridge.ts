@@ -18,15 +18,19 @@ export function describeWorld(entities: ex.Entity[]) {
     })
     .filter((x) => x.length > 0);
 
-  const string =
+  return description;
+}
+
+export function descriptionToString(description) {
+  return (
     "The world has " +
     description
       .map((e) => "something that " + e.join(" and "))
       .join(".\nIt also has ") +
-    ".";
-  console.log(string);
-  return description;
+    "."
+  );
 }
+
 function describeComponent(
   component: ex.Component<string> & { describe?: () => string | null }
 ): string | null {

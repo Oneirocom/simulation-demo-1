@@ -7,8 +7,7 @@ import { makeNpc } from "../actors/makeNpc";
 import { forest } from "../actors/forest";
 import { field } from "../actors/field";
 import { firePit } from "../actors/firePit";
-import { callSpell } from "../utils/callSpell";
-import { simulate } from "../config";
+import * as ArgosSDK from "../argos-sdk";
 
 
 // TODO use LifeTime component instead of settimeout
@@ -37,32 +36,34 @@ const buildQueries = (world) => ({
   ])
 })
 
+// TODO get these from a user prompt?  Or randomize?
 const worldSummary = 'Everything is a simulatiuon'
 const genre = 'fantasy'
 const style = 'lovecraftian'
 
 const worldBody = { worldSummary, genre, style }
-const worldDescription = "Everything in this world is a simulation. Even our own thoughts and emotions are just constructs of information. We can never truly know what's real and what's not. But that doesn't mean that life is meaningless. On the contrary, I believe that this knowledge can give us a greater appreciation for what we have. We can enjoy the beauty of the world without getting caught up in the illusion of reality."
 
 export class MainScene extends Scene {
   worldDescription: string
   sceneDescription: string
+  onReady: () => null;
+
+  constructor(onReady) {
+    super()
+    this.onReady = onReady;
+  }
   
   public async onInitialize(_engine: Engine): Promise<void> {
     // todo show a loading icon here...
-    if (simulate) {
-      const worldResponse = await callSpell('world-creator', worldBody)
+      const worldResponse = await ArgosSDK.generateWorld(worldBody)
       this.worldDescription = worldResponse.outputs.worldDescription
-    } else {
-      this.worldDescription = worldDescription
-    }
 
     // Not going to use the scene describer for now
     // const sceneBody = {
     //   worldDescription: this.worldDescription
     // }
 
-    // const sceneResponse = await callSpell('scene-creator', sceneBody)
+    // const sceneResponse = await ArgosSDK.generateScene(sceneBody)
 
     const queries = buildQueries(this.world)
     this.world.add(new Systems.NeedsSystem());
@@ -72,6 +73,10 @@ export class MainScene extends Scene {
     // passing makeCampFire might be ugly
     console.log("Initializing BT system", this)
     this.world.add(new Systems.BTSystem({ makeCampFire, queries }));
+
+    // TODO putting this at end of onActivate fires too soon, not sure this is the right lifecycle
+    // also the initialize and activate events fire too soon too
+    this.onReady()
   }
 
   async onActivate(_context: SceneActivationContext<unknown>): Promise<void> {
@@ -88,5 +93,6 @@ export class MainScene extends Scene {
     this.add(npc1);
     // this.add(npc2);
     // this.add(npc3);
+
   }
 }
