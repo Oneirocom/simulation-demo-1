@@ -30,3 +30,6 @@ When Collectors collide with other Collectors run trading rules:
 
 Somehow only want to run in one direction (ie. A collides with B but not also B collides with A)
 Consider representing rules in a trie for better effciency
+
+Notes on naming things
+- for the story narrator, I am going to need to know who a character is. They arent just a sentient being, but a specific sentient being in the story. Unless I ground the language model in specifics, it could generate new names for thingd off the bat.
