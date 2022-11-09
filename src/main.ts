@@ -1,5 +1,4 @@
 import { game } from "./game";
-import { MainScene } from "./scenes/mainScene";
 import { RandomScene } from "./scenes/randomScene";
 import Constants from "./constants";
 import * as Bridge from "./bridge";
@@ -16,10 +15,8 @@ const onReady = () => {
   loadingEl.classList.add("hidden");
 };
 
-// Pick scene (TODO maybe pull from url?)
 
-// const scene = new MainScene(onReady);
-
+// TODO gather scene descriptions before starting game
 const scene = new RandomScene();
 // call onReady immediatly on random scene
 onReady();
