@@ -1,7 +1,7 @@
 import { Engine, Scene, SceneActivationContext, vec } from "excalibur";
 import Constants from "../constants";
 import * as Systems from "../ecs/systems";
-import { game } from "../game";
+// import { game } from "../game";
 import { makeNpc } from "../actors/makeNpc";
 import { forest } from "../actors/forest";
 import { field } from "../actors/field";
@@ -11,8 +11,8 @@ import * as ArgosSDK from "../argos-sdk";
 
 // TODO use LifeTime component instead of settimeout
 const makeCampFire = () => {
-  game.add(fire);
-  setTimeout(() => fire.kill(), 4000);
+  // game.add(fire);
+  // setTimeout(() => fire.kill(), 4000);
 };
 
 /**
