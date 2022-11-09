@@ -12,11 +12,11 @@ export const forest = new ex.Actor({
   collisionType: ex.CollisionType.Fixed,
 })
   .addComponent(
-    new Components.ResourceProviderComponent({
-      name: "Wood",
+    new Components.ResourceProviderComponent([{
+      tag: "Wood",
       tags: [Constants.COMBUSTIBLE],
       color: ex.Color.fromRGB(139, 69, 19),
-    })
+    }])
   )
   // NOTE some duplication here to make the locate by query BT helper simpler
   .addTag(Constants.COMBUSTIBLE_RESOURCE)
