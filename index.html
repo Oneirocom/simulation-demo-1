@@ -4,19 +4,67 @@
 <head>
   <meta charset="UTF-8" />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,200;0,600;1,100&display=swap"
+    rel="stylesheet" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdn.tailwindcss.com"></script>
   <title>AI tech demo</title>
 </head>
 
-<body>
-  <div id="loading" class="flex justify-center items-center w-screen h-screen bg-black text-white text-2xl">
-    Loading
-  </div>
-  <div id="app">
-    <button class="absolute bg-blue-500 hover:bg-blue-800 p-4 text-white" type="button" id="describe-world">
-      Pause
-    </button>
+<body style="font-family: 'Exo 2', sans-serif">
+  <div class="container grid grid-rows-2 grid-cols-2 p-4 gap-4 h-screen">
+    <div class="border-2 border-black-500 p-4 overflow-auto">
+      <div class="flex flex-row items-center mb-4 relative">
+        <button class="hidden absolute top-4 right-4 bg-violet-900 hover:bg-violet-700 p-2 rounded-md text-white"
+          type="button" id="describe-world">
+          Pause
+        </button>
+        <img
+          src="https://images.squarespace-cdn.com/content/v1/62e0b4c63b05e91cc752e407/884af5ce-614f-48bf-9aa7-00f3564894ca/Oneirocom-Logo-main.png?format=1500w"
+          width="150" />
+        <div class="ml-12">
+          <h3 class="font-bold text-lg">Division of Narrative Generation</h3>
+          <p id="status">Please provide scene context to begin simulation</p>
+        </div>
+      </div>
+      <label for="world-summary" class="block text-sm mb-1">World summary</label>
+      <input
+        class="text-sm placeholder:italic placeholder:text-slate-400 block mb-2 bg-white w-full border border-black-500 rounded-md p-2 focus:outline-none focus:border-violet-900"
+        placeholder="Everything is a simulation" type="text" name="world-summary" />
+      <div class="flex flex-row mb-1">
+        <div class="mr-4 flex-grow">
+          <label for="genre" class="block text-sm mb-1">Genre</label>
+          <input
+            class="text-sm placeholder:italic placeholder:text-slate-400 block mb-2 bg-white w-full border border-black-500 rounded-md p-2 focus:outline-none focus:border-violet-900"
+            placeholder="fantasy" type="text" name="genre" />
+        </div>
+        <div class="flex-grow">
+          <label for="style" class="block text-sm mb-1">Style</label>
+          <input
+            class="text-sm placeholder:italic placeholder:text-slate-400 block mb-2 bg-white w-full border border-black-500 rounded-md p-2 focus:outline-none focus:border-violet-900"
+            placeholder="lovecraftian" type="text" name="style" />
+        </div>
+      </div>
+      <button data-lifecycle="loading" class="bg-violet-900 hover:bg-violet-700 p-2 rounded-md text-white" type="button"
+        id="begin-game">
+        Begin simulation
+      </button>
+      <div id="spinner" class="flex justify-center items-center hidden">
+        <div class="border-4 border-violet-900 animate-spin inline-block w-8 h-8 border-4 rounded-full"
+          style="border-right-color: transparent"></div>
+      </div>
+    </div>
+    <div id="narrative" class="border-2 border-black-500 row-span-2 p-4 overflow-auto">
+      <h3 class="font-bold text-lg mb-4">Narrative</h3>
+    </div>
+    <div class="relative">
+      <div data-lifecycle="loading" class="flex justify-center items-center w-full h-full bg-black text-white text-2xl">
+        Loading simulation...
+      </div>
+      <canvas class="h-full w-full" id="game"></canvas>
+    </div>
   </div>
   <script type="module" src="./src/main.ts"></script>
 </body>

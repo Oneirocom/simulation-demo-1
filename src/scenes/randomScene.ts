@@ -18,6 +18,7 @@ const buildQueries = (world) => ({
     Constants.COMBUSTIBLE_RESOURCE,
   ]),
   edibleResource: world.queryManager.createQuery([Constants.EDIBLE_RESOURCE]),
+  describables: world.queryManager.createQuery([Constants.DESCRIBABLE]),
 });
 
 ///////////// ENTITY PREFAB BUILDERS ////////////////
@@ -139,15 +140,17 @@ function repeat(number: number, fn: (i: number) => void): void {
 export class RandomScene extends ex.Scene {
   name = "randomScene";
 
+  queries;
+
   public onInitialize(game: ex.Engine) {
-    const queries = buildQueries(this.world);
+    this.queries = buildQueries(this.world);
     this.world.add(new Systems.NeedsSystem());
     this.world.add(new Systems.CollectorSystem());
     this.world.add(new Systems.SeekSystem());
     this.world.add(new Systems.ProximitySystem());
     this.world.add(new Systems.ResourceProviderSystem());
     this.world.add(new Systems.HeatSourceSystem());
-    this.world.add(new Systems.BTSystem({ queries }));
+    this.world.add(new Systems.BTSystem({ queries: this.queries }));
 
     repeat(rand.integer(1, 3), () =>
       this.add(makeFirePit(randomPosition(game)))
