@@ -285,7 +285,7 @@ export class NeedsSystem extends ex.System {
         (e: ex.Entity) => e.get(Components.HeatSourceComponent).fuelLevel > 0
       );
       if (foundHeatsource) {
-        entity.get(Components.NeedsComponent).exposure = 0;
+        entity.get(Components.NeedsComponent).exposure -= (this.exposureRate * delta * 2) / 1000
       } else {
         entity.get(Components.NeedsComponent).exposure +=
           (this.exposureRate * delta) / 1000;

@@ -161,10 +161,12 @@ export class RandomScene extends ex.Scene {
     }
     );
 
+    repeat(rand.integer(3, 3), (i) =>{
     const npc1 = makeNpc("npc1", randomPosition(game, 0.2), {
       exposure: rand.integer(0, 10),
       hunger: rand.integer(0, 10),
     });
     this.add(npc1);
+  })
   }
 }
