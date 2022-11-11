@@ -28,7 +28,7 @@ const makeNpc = (name, pos, needs) => {
     name: name,
     pos: pos,
     vel: ex.Vector.Zero,
-    color: ex.Color.Red,
+    color: ex.Color.fromHex(rand.pickOne(colorScheme)),
     radius: 20,
     collisionType: ex.CollisionType.Active,
   });
@@ -67,10 +67,12 @@ const makeFirePit = (pos) =>
     pos: pos,
     width: 50,
     height: 50,
-    color: ex.Color.Gray,
+    color: ex.Color.fromHex(rand.pickOne(colorScheme)),
     collisionType: ex.CollisionType.Fixed,
   })
-    .addComponent(new Components.HeatSourceComponent(rand.pickOne([0,0,0,3])))
+    .addComponent(
+      new Components.HeatSourceComponent(rand.pickOne([0, 0, 0, 3]))
+    )
     .addTag(Constants.DESCRIBABLE);
 
 export const makeResourceProvider = (pos, i) => {
@@ -78,7 +80,7 @@ export const makeResourceProvider = (pos, i) => {
     name: "forest",
     pos: pos,
     radius: rand.integer(20, 70),
-    color: ex.Color.Green,
+    color: ex.Color.fromHex(rand.pickOne(colorScheme)),
     collisionType: ex.CollisionType.Fixed,
   }).addTag(Constants.DESCRIBABLE);
 
@@ -88,7 +90,7 @@ export const makeResourceProvider = (pos, i) => {
     resources.push({
       name: "Food",
       tag: Constants.EDIBLE,
-      color: ex.Color.Yellow,
+      color: ex.Color.fromHex(rand.pickOne(colorScheme)),
     });
     actor.addTag(Constants.EDIBLE_RESOURCE);
   }
@@ -96,7 +98,7 @@ export const makeResourceProvider = (pos, i) => {
     resources.push({
       name: "Wood",
       tag: Constants.COMBUSTIBLE,
-      color: ex.Color.fromRGB(139, 69, 19),
+      color: ex.Color.fromHex(rand.pickOne(colorScheme)),
     });
     actor.addTag(Constants.COMBUSTIBLE_RESOURCE);
   }
@@ -137,6 +139,15 @@ function randomPosition(game: ex.Engine, coverageFromCenter = 1) {
 function repeat(number: number, fn: (i: number) => void): void {
   Array.from({ length: number }, (_k, v) => fn(v));
 }
+
+// from https://www.colourlovers.com/palettes
+const colorScheme = rand.pickOne([
+  ["#EBDBB2", "#FB4934", "#FE8019", "#B8BB26", "#282828"],
+  ["#5C3723", "#D63A3E", "#E47F2D", "#EDDDAA", "#69B4B2"],
+  ["#B9D886", "#C0ED9C", "#657709", "#524414", "#2B1C0F"],
+  ["#8E4137", "#CF8B4A", "#EA9957", "#90953B", "#587650"],
+]);
+
 export class RandomScene extends ex.Scene {
   name = "randomScene";
 
@@ -156,17 +167,16 @@ export class RandomScene extends ex.Scene {
       this.add(makeFirePit(randomPosition(game)))
     );
 
-    repeat(rand.integer(1, 10), (i) =>{
-      this.add(makeResourceProvider(randomPosition(game), i))
-    }
-    );
-
-    repeat(rand.integer(3, 3), (i) =>{
-    const npc1 = makeNpc("npc1", randomPosition(game, 0.2), {
-      exposure: rand.integer(0, 10),
-      hunger: rand.integer(0, 10),
+    repeat(rand.integer(1, 10), (i) => {
+      this.add(makeResourceProvider(randomPosition(game), i));
     });
-    this.add(npc1);
-  })
+
+    repeat(3, (_i) => {
+      const npc1 = makeNpc("npc1", randomPosition(game, 0.2), {
+        exposure: rand.integer(0, 10),
+        hunger: rand.integer(0, 10),
+      });
+      this.add(npc1);
+    });
   }
 }
