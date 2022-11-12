@@ -10,7 +10,7 @@ const version = "latest";
 const mockWorldDescription = {
   outputs: {
     worldDescription:
-      "Everything in this world is a simulation. Even our own thoughts and emotions are just constructs of information. We can never truly know what's real and what's not. But that doesn't mean that life is meaningless. On the contrary, I believe that this knowledge can give us a greater appreciation for what we have. We can enjoy the beauty of the world without getting caught up in the illusion of reality.",
+      "The year is 1920, and steam-powered automata have enslaved humanity. The rich rule over the poor, and technology has taken the place of emotion. But one man has had enough. He has a plan to overthrow the machines and free humanity from their grip.",
   },
 };
 
@@ -54,10 +54,11 @@ export const generateScene = async (body: { mockWorldDescription: string }) =>
     : callSpell("scene-creator", body);
 
 const formatProperties = (properties: string[]) => {
-  const start = "An object which ";
+  const start = "An object which";
   return properties.reduce((acc, prop, i, arr) => {
     acc += " " + prop;
-    if (i !== arr.length - 1) acc += "and ";
+    if (i !== arr.length - 1) acc += " and ";
+    if (i === arr.length) acc += ".";
     return acc;
   }, start);
 };
