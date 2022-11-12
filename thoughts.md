@@ -1,3 +1,19 @@
+### Prefabs
+Would be great to have a prefab system that would allow us to easily add new components to different item types.  I did this with another little ECS I built and I quite liked it.  The format was something like this:
+
+```
+{
+    componentName: componentData
+}
+```
+
+Then the prefab can be stored as a json file in the project.  They are also super easy to compose programatically in an environment in Thoth, etc.  We can decomposew the object into its key/values, knowing that each key is a componentName, and each value is the data to be loaded into it.
+
+The componentName string could map to the constructor function in a map.  My little ECS actually registered components during the initial world bootup, alongside registering systems.  Then prefabs could just be loaded into the system and turn into entities in the world as needed.
+
+The createPrefab function could also take a map of data data value overrides you may want a unique thing to have.
+
+
 ### NPC actions
 
 - food can give energy
