@@ -3,6 +3,7 @@ import { RandomScene } from "./scenes/randomScene";
 import * as Bridge from "./bridge";
 import { simulate } from "./config";
 import * as ArgosSDK from "./argos-sdk";
+import { generateDescriptions } from "./bridge";
 
 // game.showDebug(true)
 if (simulate) console.debug("simulating ArgOS");
@@ -14,11 +15,11 @@ const beginButton = document.querySelector("#begin-game");
 const narrativeEl = document.querySelector("#narrative");
 const spinnerEl = document.querySelector("#spinner");
 
-const onReady = (_worldDescription) => {
+const onReady = async (_worldDescription) => {
   loadingEls.forEach((el: HTMLElement) => el.classList.add("hidden"));
   statusEl.innerHTML = "Simulation running";
   describeButton.classList.remove("hidden");
-  spinnerEl.classList.add("hidden")
+  spinnerEl.classList.add("hidden");
 
   // TODO could pass worldDescription or scene bluebrint in
   const scene = new RandomScene();
@@ -26,11 +27,21 @@ const onReady = (_worldDescription) => {
   game.add(scene.name, scene);
   game.goToScene(scene.name);
   game.start();
+  // todo I dont like having to start the game here first, unless we want to show a loading screen until this is done.
+
+  const entities = (
+    game.currentScene as RandomScene
+  ).queries.describables.getEntities();
+  const descriptionMap = await generateDescriptions(
+    _worldDescription,
+    entities
+  );
+  console.log("description map", descriptionMap);
 };
 
 beginButton.addEventListener("click", async (e) => {
   (e.target as HTMLButtonElement).disabled = true;
-  spinnerEl.classList.remove("hidden")
+  spinnerEl.classList.remove("hidden");
 
   // TODO disable prompt inputs
   const worldBody = {
@@ -44,12 +55,13 @@ beginButton.addEventListener("click", async (e) => {
       (document.querySelector("[name=style]") as HTMLElement).innerText ||
       "lovecraftian",
   };
+
   const worldResponse = await ArgosSDK.generateWorld(worldBody);
   const worldDescription = worldResponse.worldDescription;
 
   addNarrative(worldDescription);
 
-  onReady(worldDescription);
+  await onReady(worldDescription);
 });
 
 function addNarrative(text: string) {
@@ -73,6 +85,7 @@ describeButton.addEventListener("click", (e) => {
       (game.currentScene as RandomScene).queries.describables.getEntities()
     );
 
+    // todo this is the part we want to swap out with a new description format for the scene
     ArgosSDK.enhanceWorldDescription({
       description: Bridge.descriptionToString(description),
     }).then(addNarrative);
