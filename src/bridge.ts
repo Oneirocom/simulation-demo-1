@@ -1,4 +1,33 @@
 import * as ex from "excalibur";
+import { SpellComponent } from "./ecs/components";
+
+// type ComponentWithDescribe = ex.Component<string> & {
+//   describe?: () => string | null;
+// };
+
+/**
+ * Creates a map description of every entity from a spell
+ */
+export async function generateDescriptions(
+  _worldDescription,
+  entities: ex.Entity[]
+) {
+  const descriptionPromiseMap = entities
+    .filter(composeHasComponents(["spell"]))
+    .map(async (entity) => {
+      console.log("spell entity", entity.name);
+      const entityDescription = describeEntity(entity);
+      // const components = entity.getComponents() as ComponentWithDescribe[]
+      console.log("Entity description!", entityDescription);
+      console.log("Entity spell", entity.get(SpellComponent).name);
+
+      // Send off spell
+      // Receive description
+      // Add to map
+    });
+
+  return Promise.all(descriptionPromiseMap);
+}
 
 /**
  * Pure function that converts a list of entities into a description
@@ -10,10 +39,7 @@ export function describeWorld(entities: ex.Entity[]) {
       // Maybe describe the size?
       // Maybe describe the location (ie. "to the West")?
       // Maybe describe how near or far from perspective entity?
-      return entity
-        .getComponents()
-        .map((component) => describeComponent(component))
-        .filter((x) => x);
+      return describeEntity(entity);
     })
     .filter((x) => x.length > 0);
 
@@ -30,6 +56,13 @@ export function descriptionToString(description) {
   );
 }
 
+function describeEntity(entity): string[] {
+  return entity
+    .getComponents()
+    .map((component) => describeComponent(component))
+    .filter((x) => x);
+}
+
 function describeComponent(
   component: ex.Component<string> & { describe?: () => string | null }
 ): string | null {
@@ -38,4 +71,13 @@ function describeComponent(
   } else {
     return null;
   }
+}
+
+const composeHasComponents = (componentNames) => (entity) =>
+  hasComponents(entity, componentNames);
+
+function hasComponents(entity: ex.Entity, componentNames): Boolean {
+  return entity.getComponents().some((component) => {
+    return componentNames.includes(component.type);
+  });
 }
