@@ -38,6 +38,7 @@ const makeNpc = (name, pos, needs) => {
     .addComponent(new Components.CollectorComponent())
     .addComponent(new Components.BTComponent(npcBT))
     .addComponent(new Components.ProximityComponent())
+    .addComponent(new Components.SpellComponent('character-generator'))
     .addTag(Constants.DESCRIBABLE);
 
   actor.on("precollision", function (ev) {
@@ -73,6 +74,7 @@ const makeFirePit = (pos) =>
     .addComponent(
       new Components.HeatSourceComponent(rand.pickOne([0, 0, 0, 3]))
     )
+    .addComponent(new Components.SpellComponent('object-generator'))
     .addTag(Constants.DESCRIBABLE);
 
 export const makeResourceProvider = (pos, i) => {
@@ -102,7 +104,8 @@ export const makeResourceProvider = (pos, i) => {
     });
     actor.addTag(Constants.COMBUSTIBLE_RESOURCE);
   }
-  actor.addComponent(new Components.ResourceProviderComponent(resources));
+  actor.addComponent(new Components.ResourceProviderComponent(resources))
+  .addComponent(new Components.SpellComponent('object-generator'))
   return actor;
 };
 
