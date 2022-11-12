@@ -59,7 +59,7 @@ beginButton.addEventListener("click", async (e) => {
   };
 
   const worldResponse = await ArgosSDK.generateWorld(worldBody);
-  const worldDescription = worldResponse.outputs.worldDescription;
+  const worldDescription = worldResponse.outputs.worldDescription.trim();
 
   addNarrative(worldDescription);
 
