@@ -4,6 +4,7 @@ import * as Bridge from "./bridge";
 import { simulate } from "./config";
 import * as ArgosSDK from "./argos-sdk";
 import { generateDescriptions } from "./bridge";
+import "./style.css";
 
 // game.showDebug(true)
 if (simulate) console.debug("simulating ArgOS");
@@ -32,6 +33,7 @@ const onReady = async (_worldDescription) => {
   const entities = (
     game.currentScene as RandomScene
   ).queries.describables.getEntities();
+
   const descriptionMap = await generateDescriptions(
     _worldDescription,
     entities
@@ -46,18 +48,18 @@ beginButton.addEventListener("click", async (e) => {
   // TODO disable prompt inputs
   const worldBody = {
     worldSummary:
-      (document.querySelector("[name=world-summary]") as HTMLElement)
-        .innerText || "Everything is a simulatiuon",
+      (document.querySelector("[name=world-summary]") as HTMLInputElement)
+        .value || "Everything is a simulatiuon",
     genre:
-      (document.querySelector("[name=genre]") as HTMLElement).innerText ||
+      (document.querySelector("[name=genre]") as HTMLInputElement).value ||
       "fantasy",
     style:
-      (document.querySelector("[name=style]") as HTMLElement).innerText ||
+      (document.querySelector("[name=style]") as HTMLInputElement).value ||
       "lovecraftian",
   };
 
   const worldResponse = await ArgosSDK.generateWorld(worldBody);
-  const worldDescription = worldResponse.worldDescription;
+  const worldDescription = worldResponse.outputs.worldDescription;
 
   addNarrative(worldDescription);
 
