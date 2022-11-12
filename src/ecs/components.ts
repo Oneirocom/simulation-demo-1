@@ -92,12 +92,13 @@ export class NeedsComponent extends ex.Component {
   }
 }
 
-export class SpellComponent extends ex.Component {
-  type = "spell";
-  name: string;
+// todo not sure I like calling this spell component.  Maybe to generaic given that it is specifically a spell which desribes something.
+export class GeneratorComponent extends ex.Component {
+  type = "generator";
+  spellName: string;
   constructor(spellName: string) {
     super();
-    this.name = spellName;
+    this.spellName = spellName;
   }
 }
 
