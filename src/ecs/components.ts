@@ -92,6 +92,15 @@ export class NeedsComponent extends ex.Component {
   }
 }
 
+export class SpellComponent extends ex.Component {
+  type = "spell";
+  name: string;
+  constructor(spellName: string) {
+    super();
+    this.name = spellName;
+  }
+}
+
 export class BTComponent extends ex.Component {
   type = "BT";
   bt: (Action | Node)[];
@@ -166,13 +175,14 @@ export class HeatSourceComponent extends ex.Component {
   }
 
   addFuel(amount: number) {
-    this.fuelLevel = Math.min(this.capacity, this.fuelLevel + amount)
+    this.fuelLevel = Math.min(this.capacity, this.fuelLevel + amount);
   }
 
   describe() {
     let d = "is providing heat";
     if (this.fuelLevel > this.capacity * 0.75) d = "is providing lots of heat";
-    if (this.fuelLevel < this.capacity * 0.25) d = "is providing a small amount of heat";
+    if (this.fuelLevel < this.capacity * 0.25)
+      d = "is providing a small amount of heat";
     if (this.fuelLevel === 0) d = "could provide heat";
     return d;
   }
