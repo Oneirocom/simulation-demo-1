@@ -38,7 +38,7 @@ const makeNpc = (name, pos, needs) => {
     .addComponent(new Components.CollectorComponent())
     .addComponent(new Components.BTComponent(npcBT))
     .addComponent(new Components.ProximityComponent())
-    .addComponent(new Components.SpellComponent('character-generator'))
+    .addComponent(new Components.GeneratorComponent("character-generator"))
     .addTag(Constants.DESCRIBABLE);
 
   actor.on("precollision", function (ev) {
@@ -74,7 +74,7 @@ const makeFirePit = (pos) =>
     .addComponent(
       new Components.HeatSourceComponent(rand.pickOne([0, 0, 0, 3]))
     )
-    .addComponent(new Components.SpellComponent('object-generator'))
+    .addComponent(new Components.GeneratorComponent("object-generator"))
     .addTag(Constants.DESCRIBABLE);
 
 export const makeResourceProvider = (pos, i) => {
@@ -104,8 +104,9 @@ export const makeResourceProvider = (pos, i) => {
     });
     actor.addTag(Constants.COMBUSTIBLE_RESOURCE);
   }
-  actor.addComponent(new Components.ResourceProviderComponent(resources))
-  .addComponent(new Components.SpellComponent('object-generator'))
+  actor
+    .addComponent(new Components.ResourceProviderComponent(resources))
+    .addComponent(new Components.GeneratorComponent("object-generator"));
   return actor;
 };
 
@@ -153,6 +154,7 @@ const colorScheme = rand.pickOne([
 
 export class RandomScene extends ex.Scene {
   name = "randomScene";
+  singleGen = true;
 
   queries;
 
@@ -166,15 +168,17 @@ export class RandomScene extends ex.Scene {
     this.world.add(new Systems.HeatSourceSystem());
     this.world.add(new Systems.BTSystem({ queries: this.queries }));
 
-    repeat(rand.integer(1, 3), () =>
-      this.add(makeFirePit(randomPosition(game)))
-    );
+    const firepitNum = this.singleGen ? 1 : rand.integer(1, 3);
+    const resourceNum = this.singleGen ? 1 : rand.integer(1, 10);
+    const npcNum = this.singleGen ? 1 : 3;
 
-    repeat(rand.integer(1, 10), (i) => {
+    repeat(firepitNum, () => this.add(makeFirePit(randomPosition(game))));
+
+    repeat(resourceNum, (i) => {
       this.add(makeResourceProvider(randomPosition(game), i));
     });
 
-    repeat(3, (_i) => {
+    repeat(npcNum, () => {
       const npc1 = makeNpc("npc1", randomPosition(game, 0.2), {
         exposure: rand.integer(0, 10),
         hunger: rand.integer(0, 10),
