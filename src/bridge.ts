@@ -1,32 +1,45 @@
 import * as ex from "excalibur";
-import { SpellComponent } from "./ecs/components";
+import { runGenerator } from "./argos-sdk";
+import { GeneratorComponent } from "./ecs/components";
 
-// type ComponentWithDescribe = ex.Component<string> & {
-//   describe?: () => string | null;
-// };
+const reduceDescriptionResponses = (acc, response) => {
+  return (acc[response.entityId] = response.data);
+};
 
 /**
  * Creates a map description of every entity from a spell
  */
 export async function generateDescriptions(
-  _worldDescription,
+  worldDescription,
   entities: ex.Entity[]
 ) {
   const descriptionPromiseMap = entities
-    .filter(composeHasComponents(["spell"]))
+    .filter(composeHasComponents(["generator"]))
     .map(async (entity) => {
-      console.log("spell entity", entity.name);
+      const spellKey = entity.get(GeneratorComponent).spellName;
       const entityDescription = describeEntity(entity);
-      // const components = entity.getComponents() as ComponentWithDescribe[]
-      console.log("Entity description!", entityDescription);
-      console.log("Entity spell", entity.get(SpellComponent).name);
+      console.log("entityDescription", entityDescription);
+      const spellResult = runGenerator(
+        spellKey,
+        worldDescription,
+        entityDescription
+      );
 
-      // Send off spell
-      // Receive description
-      // Add to map
+      // doing this to maintain the promise return for promise.all, but to also format the data for a further reduce
+      return spellResult.then((result) => {
+        console.log("result", result);
+        return {
+          entityId: entity.id,
+          data: result.outputs,
+        };
+      });
     });
 
-  return Promise.all(descriptionPromiseMap);
+  // format responses into a map before returning
+  return (await Promise.all(descriptionPromiseMap)).reduce(
+    reduceDescriptionResponses,
+    {}
+  );
 }
 
 /**
@@ -76,7 +89,7 @@ function describeComponent(
 const composeHasComponents = (componentNames) => (entity) =>
   hasComponents(entity, componentNames);
 
-function hasComponents(entity: ex.Entity, componentNames): Boolean {
+function hasComponents(entity: ex.Entity, componentNames): boolean {
   return entity.getComponents().some((component) => {
     return componentNames.includes(component.type);
   });
