@@ -11,6 +11,21 @@ const mockWorldDescription = {
   outputs: {
     worldDescription:
       "The year is 1920, and steam-powered automata have enslaved humanity. The rich rule over the poor, and technology has taken the place of emotion. But one man has had enough. He has a plan to overthrow the machines and free humanity from their grip.",
+    sceneDescription:
+      "A lonely man in an empty meadow at night with a box of possibilities on the horizon.  He sits alone, contemplating existence, while fireflies glow around him.",
+    sceneObjects: [
+      {
+        name: "trees",
+        description: "A cluster of trees framed against the moonlight.",
+        properties: ["EDIBLE", "COMBUSTIBLE"],
+      },
+      {
+        name: "grass",
+        description:
+          "Grass covers the countryside, bathing in the warm glow of the moon.",
+        properties: ["COMBUSTIBLE", "EDIBLE"],
+      },
+    ],
   },
 };
 
@@ -21,29 +36,42 @@ const mockSceneDescription = {
   },
 };
 
-const mockObjectDescription = {
-  outputs: {
-    description:
-      "This is a really cool object in the environment that sounds awesome.",
-  },
-};
-
 const mockCharacterDescription = {
   outputs: {},
 };
 
 const mockGeneratorMap = {
-  "object-generator": mockObjectDescription,
   "character-generator": mockCharacterDescription,
 };
 
 type Body = Record<string, unknown>;
 
+export type Property = "EDIBLE" | "COMBUSTIBLE";
+
+export type SceneObject = {
+  name: string;
+  description: string;
+  properties: Property[];
+};
+
+export type ArgosScene = {
+  worldDescription: string;
+  sceneDescription: string;
+  sceneObjects: SceneObject[];
+};
+
+type WorldResponse = {
+  outputs: ArgosScene;
+};
+/**
+ * generate a world.
+ */
 export const generateWorld = async (body: {
   worldSummary: string;
   genre: string;
   style: string;
-}) =>
+  numberOfObjects: number;
+}): Promise<WorldResponse> =>
   mockWorld
     ? Promise.resolve(mockWorldDescription)
     : callSpell("world-creator", body);
@@ -51,7 +79,7 @@ export const generateWorld = async (body: {
 export const generateScene = async (body: { mockWorldDescription: string }) =>
   mockScene
     ? Promise.resolve(mockSceneDescription)
-    : callSpell("scene-creator", body);
+    : callSpell("scene-generator", body);
 
 const formatProperties = (properties: string[]) => {
   const start = "An object which";
