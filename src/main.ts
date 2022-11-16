@@ -7,6 +7,7 @@ import * as ArgosSDK from "./argos-sdk";
 import "./style.css";
 import { GeneratedScene } from "./scenes/generatedScene";
 import { ArgosScene } from "./argos-sdk";
+import { addNarrative } from "./helpers";
 
 // game.showDebug(true)
 if (simulate) console.debug("simulating ArgOS");
@@ -15,7 +16,6 @@ const statusEl = document.querySelector("#status");
 const loadingEls = document.querySelectorAll("[data-lifecycle=loading]");
 const describeButton = document.querySelector("#describe-world");
 const beginButton = document.querySelector("#begin-game");
-const narrativeEl = document.querySelector("#narrative");
 const spinnerEl = document.querySelector("#spinner");
 
 /**
@@ -49,9 +49,13 @@ const onReady = async (argosScene: ArgosScene) => {
 /**
  * Starts the came when the begin simulation button is pressed
  */
+console.log("SETTIN GBUTTON LISTSNER");
 beginButton.addEventListener("click", async (e) => {
+  e.preventDefault();
   (e.target as HTMLButtonElement).disabled = true;
   spinnerEl.classList.remove("hidden");
+
+  console.log("CLICKED");
 
   // TODO disable prompt inputs
   const worldBodyinputs = {
@@ -68,7 +72,7 @@ beginButton.addEventListener("click", async (e) => {
 
   const worldBody = {
     ...worldBodyinputs,
-    numberOfObjects: 10,
+    numberOfObjects: 5,
   };
 
   const worldResponse = await ArgosSDK.generateWorld(worldBody);
@@ -79,16 +83,6 @@ beginButton.addEventListener("click", async (e) => {
 
   await onReady(argosScene);
 });
-
-/**
- * Adds a bit of narrative output to the text rendering view
- */
-export function addNarrative(text: string) {
-  const narrativeItem = document.createElement("div");
-  narrativeItem.className = "border border-black-500 rounded p-4 mb-4";
-  narrativeItem.innerText = text;
-  narrativeEl.appendChild(narrativeItem).scrollIntoView(true);
-}
 
 /**
  * Pauses and plays the simulation.  On pause, sends a request to argos to narrate the story

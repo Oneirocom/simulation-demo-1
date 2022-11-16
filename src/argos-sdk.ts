@@ -1,9 +1,4 @@
-import {
-  mockEnhanceWorldDescription,
-  mockScene,
-  mockWorld,
-  simulate,
-} from "./config";
+import { mockEnhanceWorldDescription, mockWorld, simulate } from "./config";
 
 const thothUrl = "https://thoth.superreality.com:8001";
 const version = "latest";
@@ -13,7 +8,7 @@ const mockWorldDescription = {
       "The year is 1920, and steam-powered automata have enslaved humanity. The rich rule over the poor, and technology has taken the place of emotion. But one man has had enough. He has a plan to overthrow the machines and free humanity from their grip.",
     sceneDescription:
       "A lonely man in an empty meadow at night with a box of possibilities on the horizon.  He sits alone, contemplating existence, while fireflies glow around him.",
-    sceneObjects: [
+    sceneResources: [
       {
         name: "trees",
         description: "A cluster of trees framed against the moonlight.",
@@ -26,13 +21,6 @@ const mockWorldDescription = {
         properties: ["COMBUSTIBLE", "EDIBLE"],
       },
     ],
-  },
-};
-
-const mockSceneDescription = {
-  outputs: {
-    sceneDescription:
-      "A lonely man in an empty meadow at night with a box of possibilities on the horizong.",
   },
 };
 
@@ -57,7 +45,7 @@ export type SceneObject = {
 export type ArgosScene = {
   worldDescription: string;
   sceneDescription: string;
-  sceneObjects: SceneObject[];
+  sceneResources: SceneObject[];
 };
 
 type WorldResponse = {
@@ -71,15 +59,12 @@ export const generateWorld = async (body: {
   genre: string;
   style: string;
   numberOfObjects: number;
-}): Promise<WorldResponse> =>
-  mockWorld
+}): Promise<WorldResponse> => {
+  console.log("GENERATING WORLD....");
+  return mockWorld
     ? Promise.resolve(mockWorldDescription)
-    : callSpell("world-creator", body);
-
-export const generateScene = async (body: { mockWorldDescription: string }) =>
-  mockScene
-    ? Promise.resolve(mockSceneDescription)
-    : callSpell("scene-generator", body);
+    : callSpell("world-generator", body);
+};
 
 const formatProperties = (properties: string[]) => {
   const start = "An object which";

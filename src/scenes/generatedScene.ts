@@ -4,7 +4,7 @@ import * as Systems from "../ecs/systems";
 import * as Components from "../ecs/components";
 import npcBT from "../behaviourTree/npc-bt";
 import { ArgosScene, SceneObject } from "../argos-sdk";
-import { addNarrative } from "../main";
+import { addNarrative } from "../helpers";
 
 /**
  * Optimization to performantly query elements by tags/components
@@ -108,9 +108,12 @@ export const makeResourceProvider = (pos, sceneObject: SceneObject) => {
     actor.addTag(Constants[`${property}_RESOURCE`]);
   });
 
+  console.log("Adding resources", resources);
+
   actor.addComponent(new Components.ResourceProviderComponent(resources));
 
   actor.on("pointerdown", () => {
+    console.log("POINTER DOWN", sceneObject);
     addNarrative(sceneObject.description);
   });
 
@@ -208,7 +211,7 @@ export class GeneratedScene extends ex.Scene {
     console.log("argos scene", this.argosScene);
 
     // right now all things are just scene objects.  But we may want to generate scene resources and scene objects.  Objects can have other behaviours etc too.
-    this.argosScene.sceneObjects.forEach((sceneObject) => {
+    this.argosScene.sceneResources.forEach((sceneObject) => {
       this.add(makeResourceProvider(randomPosition(game), sceneObject));
     });
   }
