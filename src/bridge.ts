@@ -1,5 +1,5 @@
 import * as ex from "excalibur";
-import { runGenerator } from "./argos-sdk";
+import { runGenerator, ArgosScene } from "./argos-sdk";
 import { GeneratorComponent } from "./ecs/components";
 
 const reduceDescriptionResponses = (acc, response) => {
@@ -93,4 +93,30 @@ function hasComponents(entity: ex.Entity, componentNames): boolean {
   return entity.getComponents().some((component) => {
     return componentNames.includes(component.type);
   });
+}
+
+//------------ speculative functions for proposed workflow
+
+/**
+ * Called in `.then` clause of argos generating call
+ * Returned value can be piped directly into an `ex.Scene` constructer which can `.add` each of them
+ */
+function parseGeneratedScene(sceneData: ArgosScene): ex.Entity[] {
+  sceneData.sceneResources.map(({ name, description, properties }) => {
+    const basicProps = {}; // these maybe come from argos or maybe are random or hard coded?
+    const actor = new ex.Actor(basicProps);
+    // todo use consts
+    actor.addTag("containsGeneratedContent");
+    // note, maybe the prescence of DescriptionComponent suffices in lieue of the above tag?
+    actor.addComponent(new DescriptionComponent({ name, description }));
+    properties.map((p) => {
+      const component = componentFromProperty(p);
+      actor.addComponent(component);
+    });
+    return actor;
+  });
+}
+
+function componentFromProperty(property: string): ex.Component {
+  // todo maybe this is a hard coded map of all of our components by names, or maybe it has to be a little more "fuzzy"
 }
