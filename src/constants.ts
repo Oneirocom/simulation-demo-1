@@ -5,4 +5,5 @@ export default {
   EDIBLE_RESOURCE: "edibleResource",
   EDIBLE: "edible",
   DESCRIBABLE: "describable",
+  DESCRIBECOMPONENT: "describe",
 };

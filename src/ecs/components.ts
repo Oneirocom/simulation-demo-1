@@ -2,6 +2,7 @@ import { Action, Node } from "../behaviourTree/bt";
 import * as ex from "excalibur";
 import Constants from "../constants";
 import { NeedsSystem } from "./systems";
+import { addNarrative } from "../helpers";
 
 //
 /////////// COMPONENTS //////////////
@@ -99,6 +100,23 @@ export class GeneratorComponent extends ex.Component {
   constructor(spellName: string) {
     super();
     this.spellName = spellName;
+  }
+}
+
+export class DescriptionComponent extends ex.Component {
+  type = Constants.DESCRIBECOMPONENT;
+  name: string;
+  description: string;
+  constructor({ name: name, description: description }) {
+    super();
+    this.name = name;
+    this.description = description;
+  }
+
+  onAdd(e: ex.Entity): void {
+    e.on("pointerdown", () => {
+      addNarrative(e.get(DescriptionComponent).description);
+    });
   }
 }
 

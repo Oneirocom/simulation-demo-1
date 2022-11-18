@@ -1,46 +1,9 @@
 import * as ex from "excalibur";
-import { runGenerator, ArgosScene } from "./argos-sdk";
-import { GeneratorComponent } from "./ecs/components";
-
-const reduceDescriptionResponses = (acc, response) => {
-  return (acc[response.entityId] = response.data);
-};
-
-/**
- * Creates a map description of every entity from a spell
- */
-export async function generateDescriptions(
-  worldDescription,
-  entities: ex.Entity[]
-) {
-  const descriptionPromiseMap = entities
-    .filter(composeHasComponents(["generator"]))
-    .map(async (entity) => {
-      const spellKey = entity.get(GeneratorComponent).spellName;
-      const entityDescription = describeEntity(entity);
-      console.log("entityDescription", entityDescription);
-      const spellResult = runGenerator(
-        spellKey,
-        worldDescription,
-        entityDescription
-      );
-
-      // doing this to maintain the promise return for promise.all, but to also format the data for a further reduce
-      return spellResult.then((result) => {
-        console.log("result", result);
-        return {
-          entityId: entity.id,
-          data: result.outputs,
-        };
-      });
-    });
-
-  // format responses into a map before returning
-  return (await Promise.all(descriptionPromiseMap)).reduce(
-    reduceDescriptionResponses,
-    {}
-  );
-}
+import { DescriptionComponent } from "./ecs/components";
+import { randomPosition, rand, colorScheme } from "./helpers";
+import * as Components from "./ecs/components";
+import Constants from "./constants";
+import { ArgosScene } from "./argos-sdk";
 
 /**
  * Pure function that converts a list of entities into a description
@@ -54,26 +17,29 @@ export function describeWorld(entities: ex.Entity[]) {
       // Maybe describe how near or far from perspective entity?
       return describeEntity(entity);
     })
-    .filter((x) => x.length > 0);
 
   return description;
 }
 
-export function descriptionToString(description) {
+export function descriptionToString(description: {name: string, description: string, properties: string[]}[]) {
   return (
-    "The world has " +
     description
-      .map((e) => "something that " + e.join(" and "))
-      .join(".\nIt also has ") +
-    "."
+      .map((e) => `${e.name}: ${e.description}  It ` + e.properties.join(" and "))
+      .join(".\n")
   );
 }
 
-function describeEntity(entity): string[] {
-  return entity
+function describeEntity(entity: ex.Entity): {name: string, description: string, properties: string[]} {
+  const {name, description} = entity.get(Components.DescriptionComponent);;
+  return {
+    name: name,
+    description: description,
+    properties:
+    entity
     .getComponents()
     .map((component) => describeComponent(component))
-    .filter((x) => x);
+    .filter((x) => x)
+  }
 }
 
 function describeComponent(
@@ -86,37 +52,83 @@ function describeComponent(
   }
 }
 
-const composeHasComponents = (componentNames) => (entity) =>
-  hasComponents(entity, componentNames);
-
-function hasComponents(entity: ex.Entity, componentNames): boolean {
-  return entity.getComponents().some((component) => {
-    return componentNames.includes(component.type);
-  });
-}
-
-//------------ speculative functions for proposed workflow
 
 /**
- * Called in `.then` clause of argos generating call
- * Returned value can be piped directly into an `ex.Scene` constructer which can `.add` each of them
+ * Turns generated scenes into Excalibur entities for use in a scene
+ *
+ * Requires the `game` for things like random positioning
  */
-function parseGeneratedScene(sceneData: ArgosScene): ex.Entity[] {
-  sceneData.sceneResources.map(({ name, description, properties }) => {
-    const basicProps = {}; // these maybe come from argos or maybe are random or hard coded?
+export function parseGeneratedScene(
+  game: ex.Engine,
+  sceneData: ArgosScene
+): ex.Entity[] {
+  return sceneData.sceneResources.map(({ name, description, properties }) => {
+    // these maybe come from argos or maybe are random or hard coded?
+    const basicProps = {
+      // for our own debugging, not externally used
+      name: name,
+      pos: randomPosition(game, 1, 0.5),
+      radius: rand.integer(20, 70),
+      color: ex.Color.fromHex(rand.pickOne(colorScheme)),
+      collisionType: ex.CollisionType.Fixed,
+    };
     const actor = new ex.Actor(basicProps);
-    // todo use consts
-    actor.addTag("containsGeneratedContent");
-    // note, maybe the prescence of DescriptionComponent suffices in lieue of the above tag?
     actor.addComponent(new DescriptionComponent({ name, description }));
-    properties.map((p) => {
-      const component = componentFromProperty(p);
-      actor.addComponent(component);
-    });
+    const { tags, components } = componentsFromProperties(properties);
+    components.forEach((c) => actor.addComponent(c));
+    tags.forEach((t) => actor.addTag(t));
+
     return actor;
   });
 }
 
-function componentFromProperty(property: string): ex.Component {
-  // todo maybe this is a hard coded map of all of our components by names, or maybe it has to be a little more "fuzzy"
+/**
+ * Map properties to components any way you can
+ * Properties are AI generated and don't necessarily map 1-1 with our components
+ * Returns components and tags separately
+ */
+function componentsFromProperties(properties: string[]): {
+  components: ex.Component[];
+  tags: string[];
+} {
+  const discoveredComponents: ex.Component[] = [];
+  const discoveredTags: string[] = [];
+
+  // First, let's figure out ResourceProviderComponent
+  const resources = [];
+
+  // NOTE, currently properties are only EDIBLE and COMBUSTIBLE. These two
+  // properties refer to providers of said property, not the property itself
+  // (ie. the object is not edibie, it is an edible provider)
+  // TODO string matching is risky
+  if (properties.includes("COMBUSTIBLE")) {
+    resources.push({
+      name: "something combustible",
+      tag: Constants.COMBUSTIBLE,
+      color: ex.Color.fromHex(rand.pickOne(colorScheme)),
+    });
+    discoveredTags.push(Constants.COMBUSTIBLE_RESOURCE);
+  }
+  if (properties.includes("EDIBLE")) {
+    resources.push({
+      name: "something edible",
+      tag: Constants.EDIBLE,
+      color: ex.Color.fromHex(rand.pickOne(colorScheme)),
+    });
+    discoveredTags.push(Constants.EDIBLE_RESOURCE);
+  }
+  if (resources.length > 0)
+    discoveredComponents.push(
+      new Components.ResourceProviderComponent(resources)
+    );
+
+
+  // add HeatSourceComponent
+  // TODO this won't ever match for now because we don't generate this property yet
+  if(properties.includes(Constants.HEATSOURCE)) {
+    // TODO ideally figure out component init data from properties too
+    discoveredComponents.push(new Components.HeatSourceComponent(5))
+  }
+
+  return { components: discoveredComponents, tags: discoveredTags };
 }
