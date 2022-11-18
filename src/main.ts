@@ -21,41 +21,27 @@ const spinnerEl = document.querySelector("#spinner");
 /**
  * Called after async actions to set up initial scene are done
  */
-const onReady = async (argosScene: ArgosScene) => {
+const onReady = async (entitiesToAdd: ex.Entity[]) => {
   loadingEls.forEach((el: HTMLElement) => el.classList.add("hidden"));
   statusEl.innerHTML = "Simulation running";
   describeButton.classList.remove("hidden");
   spinnerEl.classList.add("hidden");
 
-  // Passing in scene blueprint for the scene to be generated
-  const scene = new GeneratedScene(argosScene);
+  console.log("generated editires", ...entitiesToAdd);
+  const scene = new GeneratedScene(entitiesToAdd);
   console.log("running scene:", scene.name);
   game.add(scene.name, scene);
   game.goToScene(scene.name);
   game.start();
-  // todo I dont like having to start the game here first, unless we want to show a loading screen until this is done.
-
-  // const entities = (
-  //   game.currentScene as RandomScene
-  // ).queries.describables.getEntities();
-
-  // const descriptionMap = await generateDescriptions(
-  //   _worldDescription,
-  //   entities
-  // );
-  // console.log("description map", descriptionMap);
 };
 
 /**
  * Starts the came when the begin simulation button is pressed
  */
-console.log("SETTIN GBUTTON LISTSNER");
 beginButton.addEventListener("click", async (e) => {
   e.preventDefault();
   (e.target as HTMLButtonElement).disabled = true;
   spinnerEl.classList.remove("hidden");
-
-  console.log("CLICKED");
 
   // TODO disable prompt inputs
   const worldBodyinputs = {
@@ -75,14 +61,21 @@ beginButton.addEventListener("click", async (e) => {
     numberOfObjects: 5,
   };
 
-  const worldResponse = await ArgosSDK.generateWorld(worldBody);
-  const argosScene = worldResponse.outputs;
+  const argosScene = await generateContent(worldBody)
+  const sceneEntities = Bridge.parseGeneratedScene(game, argosScene)
+  // TODO could do validation here, like regenerate if error returned or something
+  
+  // question: do we need to store this somewhere?
   const worldDescription = argosScene.worldDescription.trim();
-
   addNarrative(worldDescription);
 
-  await onReady(argosScene);
+  await onReady(sceneEntities);
 });
+
+async function generateContent(worldBody): Promise<ArgosScene> {
+  const worldResponse = await ArgosSDK.generateWorld(worldBody);
+  return worldResponse.outputs;
+}
 
 /**
  * Pauses and plays the simulation.  On pause, sends a request to argos to narrate the story
@@ -100,10 +93,11 @@ describeButton.addEventListener("click", (e) => {
     const description = Bridge.describeWorld(
       (game.currentScene as RandomScene).queries.describables.getEntities()
     );
+    const descriptionAsString = Bridge.descriptionToString(description);
 
     // todo this is the part we want to swap out with a new description format for the scene
     ArgosSDK.enhanceWorldDescription({
-      description: Bridge.descriptionToString(description),
+      description: descriptionAsString,
     }).then(addNarrative);
 
     (<HTMLElement>e.target).innerText = "Continue";

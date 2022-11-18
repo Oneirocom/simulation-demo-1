@@ -43,9 +43,9 @@ export function run(nodes: NodeOrAction[], blackboard = {}) {
     // todo clean this up a bit.  There is some type ambiguity and coercion going on.
     node => node.type === "action" || (node as Node).predicate(blackboard)
   );
-  if (typeof selectedNode === "undefined")
-    throw Error("reached end of tree but no action reached");
-  if (selectedNode.type === "action") {
+  if (typeof selectedNode === "undefined")  {
+    return ({key: "no action reached", fn: () => console.error("BT error: reached end of tree but no action reached")})
+  } else if (selectedNode.type === "action") {
     return (selectedNode as Action).perform(blackboard);
   } else {
     return run((selectedNode as Node).children, blackboard);

@@ -3,8 +3,7 @@ import Constants from "../constants";
 import * as Systems from "../ecs/systems";
 import * as Components from "../ecs/components";
 import npcBT from "../behaviourTree/npc-bt";
-import { ArgosScene, SceneObject } from "../argos-sdk";
-import { addNarrative } from "../helpers";
+import { randomPosition, repeat, rand, colorScheme } from "../helpers";
 
 /**
  * Optimization to performantly query elements by tags/components
@@ -20,7 +19,7 @@ const buildQueries = (world) => ({
     Constants.COMBUSTIBLE_RESOURCE,
   ]),
   edibleResource: world.queryManager.createQuery([Constants.EDIBLE_RESOURCE]),
-  describables: world.queryManager.createQuery([Constants.DESCRIBABLE]),
+  describables: world.queryManager.createQuery([Constants.DESCRIBECOMPONENT]),
 });
 
 ///////////// ENTITY PREFAB BUILDERS ////////////////
@@ -64,6 +63,7 @@ const makeNpc = (name, pos, needs) => {
   return actor;
 };
 
+// TODO remove when scene generator can generate heat sources
 const makeFirePit = (pos) =>
   new ex.Actor({
     name: "firePit",
@@ -79,145 +79,63 @@ const makeFirePit = (pos) =>
     .addComponent(new Components.GeneratorComponent("object-generator"))
     .addTag(Constants.DESCRIBABLE);
 
-/**
- * Takes in a position, and a scene object type to generate a resource from.
- */
-export const makeResourceProvider = (pos, sceneObject: SceneObject) => {
-  const actor = new ex.Actor({
-    name: "forest",
-    pos: pos,
-    radius: rand.integer(20, 70),
-    color: ex.Color.fromHex(rand.pickOne(colorScheme)),
-    collisionType: ex.CollisionType.Fixed,
-  }).addTag(Constants.DESCRIBABLE);
-
-  const resources = [];
-
-  sceneObject.properties.forEach((property) => {
-    const tag = Constants[property];
-
-    // ensure we only attach properties which exist in the engine.
-    if (!tag) return;
-
-    resources.push({
-      tag,
-      // this would be a great place to load in a SD generated asset
-      color: ex.Color.fromHex(rand.pickOne(colorScheme)),
-    });
-
-    actor.addTag(Constants[`${property}_RESOURCE`]);
-  });
-
-  console.log("Adding resources", resources);
-
-  actor.addComponent(new Components.ResourceProviderComponent(resources));
-
-  actor.on("pointerdown", () => {
-    console.log("POINTER DOWN", sceneObject);
-    addNarrative(sceneObject.description);
-  });
-
-  return actor;
-};
-
-export const makeRandomResourceProvider = (pos, i) => {
-  const actor = new ex.Actor({
-    name: "forest",
-    pos: pos,
-    radius: rand.integer(20, 70),
-    color: ex.Color.fromHex(rand.pickOne(colorScheme)),
-    collisionType: ex.CollisionType.Fixed,
-  }).addTag(Constants.DESCRIBABLE);
-
-  const resources = [];
-  // ensure at least 1 resource provider has food and wood
-  if (i === 0 || rand.bool(0.3)) {
-    resources.push({
-      name: "Food",
-      tag: Constants.EDIBLE,
-      color: ex.Color.fromHex(rand.pickOne(colorScheme)),
-    });
-    actor.addTag(Constants.EDIBLE_RESOURCE);
-  }
-  if (i === 0 || rand.bool(0.8)) {
-    resources.push({
-      name: "Wood",
-      tag: Constants.COMBUSTIBLE,
-      color: ex.Color.fromHex(rand.pickOne(colorScheme)),
-    });
-    actor.addTag(Constants.COMBUSTIBLE_RESOURCE);
-  }
-  actor
-    .addComponent(new Components.ResourceProviderComponent(resources))
-    .addComponent(new Components.GeneratorComponent("object-generator"));
-  return actor;
-};
-
-////////// RAND HELPERS ///////////
-
-// lock the seed if desired
-// sparse seed 1667946673875
-// fuller seed 1667947499766
-// spread out seed 1667946609610
-// good hunger first example 1668001137456
-const seed = parseInt(Date.now().toString());
-const rand = new ex.Random(seed);
-console.log("Using random seed", seed);
-
-/**
- * Randomly place an entity within the game bounds
- * coverageFromCenter of 0 will be at exact game center, 1 could be placed anywhere on screen, even at an edge
- */
-function randomPosition(game: ex.Engine, coverageFromCenter = 1) {
-  return ex.vec(
-    game.halfDrawWidth +
-      rand.integer(
-        -game.halfDrawWidth * coverageFromCenter,
-        game.halfDrawWidth * coverageFromCenter
-      ),
-    game.halfDrawHeight +
-      rand.integer(
-        -game.halfDrawHeight * coverageFromCenter,
-        game.halfDrawHeight * coverageFromCenter
-      )
-  );
-}
-
-function repeat(number: number, fn: (i: number) => void): void {
-  Array.from({ length: number }, (_k, v) => fn(v));
-}
-
-// from https://www.colourlovers.com/palettes
-const colorScheme = rand.pickOne([
-  ["#EBDBB2", "#FB4934", "#FE8019", "#B8BB26", "#282828"],
-  ["#5C3723", "#D63A3E", "#E47F2D", "#EDDDAA", "#69B4B2"],
-  ["#B9D886", "#C0ED9C", "#657709", "#524414", "#2B1C0F"],
-  ["#8E4137", "#CF8B4A", "#EA9957", "#90953B", "#587650"],
-]);
+// /**
+//  * Takes in a position, and a scene object type to generate a resource from.
+//  */
+// export const makeResourceProvider = (pos, sceneObject: SceneObject) => {
+//   const actor = new ex.Actor({
+//     name: "forest",
+//     pos: pos,
+//     radius: rand.integer(20, 70),
+//     color: ex.Color.fromHex(rand.pickOne(colorScheme)),
+//     collisionType: ex.CollisionType.Fixed,
+//   }).addTag(Constants.DESCRIBABLE);
+//
+//   const resources = [];
+//
+//   sceneObject.properties.forEach((property) => {
+//     const tag = Constants[property];
+//
+//     // ensure we only attach properties which exist in the engine.
+//     if (!tag) return;
+//
+//     resources.push({
+//       tag,
+//       // this would be a great place to load in a SD generated asset
+//       color: ex.Color.fromHex(rand.pickOne(colorScheme)),
+//     });
+//
+//     actor.addTag(Constants[`${property}_RESOURCE`]);
+//   });
+// //
+//   console.log("Adding resources", resources);
+//
+//   actor.addComponent(new Components.ResourceProviderComponent(resources));
+//
+//   actor.on("pointerdown", () => {
+//     console.log("POINTER DOWN", sceneObject);
+//     addNarrative(sceneObject.description);
+//   });
+//
+//   return actor;
+// };
+//
 
 export class GeneratedScene extends ex.Scene {
   name = "generatedScene";
   singleGen = true;
-  argosScene: ArgosScene;
+  entitiesToAdd: ex.Entity[];
 
   queries;
 
-  constructor(argosScene: ArgosScene) {
+  constructor(entitiesToAdd: ex.Entity[]) {
     super();
-    this.argosScene = argosScene;
-  }
-
-  private constructScene(game) {
-    console.log("argos scene", this.argosScene);
-
-    // right now all things are just scene objects.  But we may want to generate scene resources and scene objects.  Objects can have other behaviours etc too.
-    this.argosScene.sceneResources.forEach((sceneObject) => {
-      this.add(makeResourceProvider(randomPosition(game), sceneObject));
-    });
+    this.entitiesToAdd = entitiesToAdd;
   }
 
   public onInitialize(game: ex.Engine) {
     this.queries = buildQueries(this.world);
+
     this.world.add(new Systems.NeedsSystem());
     this.world.add(new Systems.CollectorSystem());
     this.world.add(new Systems.SeekSystem());
@@ -226,20 +144,27 @@ export class GeneratedScene extends ex.Scene {
     this.world.add(new Systems.HeatSourceSystem());
     this.world.add(new Systems.BTSystem({ queries: this.queries }));
 
+    this.entitiesToAdd.map(this.add.bind(this));
+
+    // TODO remove when scene generator includes heat sources
     const firepitNum = this.singleGen ? 1 : rand.integer(1, 3);
-    const npcNum = this.singleGen ? 1 : 3;
-
-    this.constructScene(game);
-
     // todo constrain resources to be further from the firepit.
-    repeat(firepitNum, () => this.add(makeFirePit(randomPosition(game))));
+    repeat(firepitNum, () => this.add(makeFirePit(randomPosition(game, 0.25))));
 
+    const npcNum = this.singleGen ? 1 : 3;
     repeat(npcNum, () => {
-      const npc1 = makeNpc("npc1", randomPosition(game, 0.2), {
+      const npc = makeNpc("npc1", randomPosition(game, 0.4, 0.25), {
         exposure: rand.integer(0, 10),
         hunger: rand.integer(0, 10),
       });
-      this.add(npc1);
+      // TODO manually adding name and description so it will show up, but should come from generator
+      npc.addComponent(
+        new Components.DescriptionComponent({
+          name: `npc${npcNum}`,
+          description: "A sentient being",
+        })
+      );
+      this.add(npc);
     });
   }
 }
