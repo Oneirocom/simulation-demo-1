@@ -1,5 +1,4 @@
 import { game } from "./game";
-import { RandomScene } from "./scenes/randomScene";
 import * as Bridge from "./bridge";
 import { simulate } from "./config";
 import * as ArgosSDK from "./argos-sdk";
@@ -27,7 +26,7 @@ const onReady = async (entitiesToAdd: ex.Entity[]) => {
   describeButton.classList.remove("hidden");
   spinnerEl.classList.add("hidden");
 
-  console.log("generated editires", ...entitiesToAdd);
+  console.log("generated entities", ...entitiesToAdd);
   const scene = new GeneratedScene(entitiesToAdd);
   console.log("running scene:", scene.name);
   game.add(scene.name, scene);
@@ -61,10 +60,10 @@ beginButton.addEventListener("click", async (e) => {
     numberOfObjects: 5,
   };
 
-  const argosScene = await generateContent(worldBody)
-  const sceneEntities = Bridge.parseGeneratedScene(game, argosScene)
+  const argosScene = await generateContent(worldBody);
+  const sceneEntities = Bridge.parseGeneratedScene(game, argosScene);
   // TODO could do validation here, like regenerate if error returned or something
-  
+
   // question: do we need to store this somewhere?
   const worldDescription = argosScene.worldDescription.trim();
   addNarrative(worldDescription);
@@ -90,15 +89,22 @@ describeButton.addEventListener("click", (e) => {
     isPaused = true;
     game.stop();
     // TODO forcing this to RandomScene here is brittle...
-    const description = Bridge.describeWorld(
-      (game.currentScene as RandomScene).queries.describables.getEntities()
-    );
-    const descriptionAsString = Bridge.descriptionToString(description);
+    // const description = Bridge.describeWorld(
+    //   (game.currentScene as RandomScene).queries.describables.getEntities()
+    // );
+    // const descriptionAsString = Bridge.descriptionToString(description);
 
-    // todo this is the part we want to swap out with a new description format for the scene
-    ArgosSDK.enhanceWorldDescription({
-      description: descriptionAsString,
-    }).then(addNarrative);
+    // // todo this is the part we want to swap out with a new description format for the scene
+    // ArgosSDK.enhanceWorldDescription({
+    //   description: descriptionAsString,
+    // }).then(addNarrative);
+
+    // we assume here that there is only one narrator entity.  Could probably handle more elegantly.
+    const character = (
+      game.currentScene as GeneratedScene
+    ).queries.narrator.getEntities()[0];
+    const characterScript = Bridge.createCharacterScript(character);
+    ArgosSDK.narrateCharacter(characterScript);
 
     (<HTMLElement>e.target).innerText = "Continue";
   }
