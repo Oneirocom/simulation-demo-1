@@ -33,17 +33,17 @@ export const actions = {
     description: "make a fire",
     fn: (done) => {
       // TODO super ugly, but works
-      const foundHeatSource = [...(bb.entity as ex.Entity).get(Components.ProximityComponent).nearBy].find(
-        (e: ex.Entity) => e.has(Components.HeatSourceComponent)
-      );
-      foundHeatSource.get(Components.HeatSourceComponent).addFuel(5)
+      const foundHeatSource = [
+        ...(bb.entity as ex.Entity).get(Components.ProximityComponent).nearBy,
+      ].find((e: ex.Entity) => e.has(Components.HeatSourceComponent));
+      foundHeatSource.get(Components.HeatSourceComponent).addFuel(5);
       Systems.CollectorSystem.removeInventory(bb.entity, Constants.COMBUSTIBLE);
       return done();
     },
   }),
 };
 
-function seekActionFn(entity: ex.Entity, target, desired_resource) {
+function seekActionFn(entity: ex.Entity, target: ex.Actor, desired_resource) {
   return (done) => {
     entity.removeComponent("seek", true);
     entity.addComponent(
@@ -53,7 +53,7 @@ function seekActionFn(entity: ex.Entity, target, desired_resource) {
         speed: 200,
         target,
         desired_resource,
-        onHit: () => done(),
+        onHit: done,
       })
     );
   };
@@ -73,7 +73,7 @@ const doNothing = action(() => ({
  */
 const locate = (
   query: ex.Query,
-  bb: any,
+  bb: Record<string, any>,
   pred: (e: ex.Entity) => boolean = () => true
 ): boolean => {
   // NOTE scope to "visible" or "near by" entities via spatial graph / collision box
