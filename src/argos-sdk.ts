@@ -12,13 +12,35 @@ const mockWorldDescription = {
       {
         name: "trees",
         description: "A cluster of trees framed against the moonlight.",
-        properties: ["EDIBLE", "COMBUSTIBLE"],
+        properties: ["EDIBLE"],
       },
       {
         name: "grass",
         description:
           "Grass covers the countryside, bathing in the warm glow of the moon.",
-        properties: ["COMBUSTIBLE", "EDIBLE"],
+        properties: ["COMBUSTIBLE"],
+      },
+      {
+        name: "trees",
+        description: "A cluster of trees framed against the moonlight.",
+        properties: ["EDIBLE"],
+      },
+      {
+        name: "grass",
+        description:
+          "Grass covers the countryside, bathing in the warm glow of the moon.",
+        properties: ["COMBUSTIBLE"],
+      },
+      {
+        name: "trees",
+        description: "A cluster of trees framed against the moonlight.",
+        properties: ["COMBUSTIBLE"],
+      },
+      {
+        name: "grass",
+        description:
+          "Grass covers the countryside, bathing in the warm glow of the moon.",
+        properties: ["EDIBLE"],
       },
     ],
   },
@@ -103,6 +125,10 @@ export async function enhanceWorldDescription(body: {
   return mockEnhanceWorldDescription
     ? Promise.resolve(body.description)
     : callSpell("enhance", body);
+}
+
+export async function narrateCharacter(characterScript) {
+  console.log("character script", characterScript);
 }
 
 export const callSpell = async (spell: string, body: Body = {}) => {
