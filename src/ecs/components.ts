@@ -125,6 +125,8 @@ export class BTComponent extends ex.Component {
   bt: (Action | Node)[];
   currentAction: null;
   currentActionDescription: string | null;
+  previousAction: string | null;
+  previousObject: ex.Actor | null;
   previousActionDescription: string | null;
   /**
    * BT action nodes should return type {key: string, fn: () => any}
