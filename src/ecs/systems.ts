@@ -134,6 +134,8 @@ export class SeekSystem extends ex.System {
           entity
             .get(Components.CollectorComponent)
             .inventory.set(resource.tag, resource);
+
+          entity.get(Components.BTComponent).previousObject = seek.target;
         }
 
         // NOTE force remove in case other system wants to add a new seek in same frame
@@ -163,7 +165,7 @@ export class ResourceProviderSystem extends ex.System {
     this.ctx = scene.engine.graphicsContext;
   }
 
-  update(entities: ex.Actor[], _delta) {
+  update(entities: ex.Actor[]) {
     for (const entity of entities) {
       this.ctx.save();
       let i = 0;
@@ -213,7 +215,7 @@ export class CollectorSystem extends ex.System {
     this.ctx = scene.engine.graphicsContext;
   }
 
-  update(entities: ex.Actor[], _delta) {
+  update(entities: ex.Actor[]) {
     for (const entity of entities) {
       this.ctx.save();
       let i = 0;
@@ -285,7 +287,8 @@ export class NeedsSystem extends ex.System {
         (e: ex.Entity) => e.get(Components.HeatSourceComponent).fuelLevel > 0
       );
       if (foundHeatsource) {
-        entity.get(Components.NeedsComponent).exposure -= (this.exposureRate * delta * 2) / 1000
+        entity.get(Components.NeedsComponent).exposure -=
+          (this.exposureRate * delta * 2) / 1000;
       } else {
         entity.get(Components.NeedsComponent).exposure +=
           (this.exposureRate * delta) / 1000;
@@ -347,8 +350,10 @@ export class BTSystem extends ex.System {
       if (key !== e.get(Components.BTComponent).currentAction) {
         fn(this.onDone.bind(this, e));
         console.debug(e.name, "New action:", key);
-        e.get(Components.BTComponent).currentAction = key;
-        e.get(Components.BTComponent).currentActionDescription = description;
+        const btComponent = e.get(Components.BTComponent);
+        btComponent.previousAction = btComponent.currentAction;
+        btComponent.currentAction = key;
+        btComponent.currentActionDescription = description;
       }
     });
   }
