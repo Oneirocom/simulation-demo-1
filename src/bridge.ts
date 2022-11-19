@@ -10,36 +10,85 @@ import { ArgosScene } from "./argos-sdk";
  */
 export function describeWorld(entities: ex.Entity[]) {
   // TODO maybe provide a "perspective" entity?
-  const description = entities
-    .map((entity) => {
-      // Maybe describe the size?
-      // Maybe describe the location (ie. "to the West")?
-      // Maybe describe how near or far from perspective entity?
-      return describeEntity(entity);
-    })
+  const description = entities.map((entity) => {
+    // Maybe describe the size?
+    // Maybe describe the location (ie. "to the West")?
+    // Maybe describe how near or far from perspective entity?
+    return describeEntity(entity);
+  });
 
   return description;
 }
 
-export function descriptionToString(description: {name: string, description: string, properties: string[]}[]) {
-  return (
-    description
-      .map((e) => `${e.name}: ${e.description}  It ` + e.properties.join(" and "))
-      .join(".\n")
+export function createCharacterScript(entity: ex.Entity) {
+  const {
+    currentAction,
+    currentActionDescription,
+    previousActionDescription,
+    previousAction,
+    previousObject,
+  } = entity.get(Components.BTComponent);
+
+  // todo handle undefined items here better. When the simulation first starts, these are undefined.
+  // in theory the spell should take care of this, but we will need to handle it.
+  if (!previousObject) return null;
+
+  const { name, description } = previousObject.get(
+    Components.DescriptionComponent
   );
+
+  // this could all probably be more concise
+  const previous = {
+    action: {
+      name: previousAction,
+      description: previousActionDescription,
+    },
+    object: {
+      name,
+      description,
+    },
+  };
+
+  const next = {
+    action: {
+      name: currentAction,
+      description: currentActionDescription,
+    },
+  };
+
+  return {
+    name: describeEntity(entity).name,
+    currentState: describeComponent(entity.get(Components.NeedsComponent)),
+    inventory:
+      describeComponent(entity.get(Components.CollectorComponent)) ||
+      "not carrying anything",
+    previous,
+    next,
+  };
 }
 
-function describeEntity(entity: ex.Entity): {name: string, description: string, properties: string[]} {
-  const {name, description} = entity.get(Components.DescriptionComponent);;
+export function descriptionToString(
+  description: { name: string; description: string; properties: string[] }[]
+) {
+  return description
+    .map((e) => `${e.name}: ${e.description}  It ` + e.properties.join(" and "))
+    .join(".\n");
+}
+
+function describeEntity(entity: ex.Entity): {
+  name: string;
+  description: string;
+  properties: string[];
+} {
+  const { name, description } = entity.get(Components.DescriptionComponent);
   return {
     name: name,
     description: description,
-    properties:
-    entity
-    .getComponents()
-    .map((component) => describeComponent(component))
-    .filter((x) => x)
-  }
+    properties: entity
+      .getComponents()
+      .map((component) => describeComponent(component))
+      .filter((x) => x),
+  };
 }
 
 function describeComponent(
@@ -51,7 +100,6 @@ function describeComponent(
     return null;
   }
 }
-
 
 /**
  * Turns generated scenes into Excalibur entities for use in a scene
@@ -122,12 +170,11 @@ function componentsFromProperties(properties: string[]): {
       new Components.ResourceProviderComponent(resources)
     );
 
-
   // add HeatSourceComponent
   // TODO this won't ever match for now because we don't generate this property yet
-  if(properties.includes(Constants.HEATSOURCE)) {
+  if (properties.includes(Constants.HEATSOURCE)) {
     // TODO ideally figure out component init data from properties too
-    discoveredComponents.push(new Components.HeatSourceComponent(5))
+    discoveredComponents.push(new Components.HeatSourceComponent(5));
   }
 
   return { components: discoveredComponents, tags: discoveredTags };
