@@ -6,4 +6,5 @@ export default {
   EDIBLE: "edible",
   DESCRIBABLE: "describable",
   DESCRIBECOMPONENT: "describe",
+  NARRATOR: "narrator",
 };
