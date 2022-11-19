@@ -10,7 +10,11 @@ import { randomPosition, repeat, rand, colorScheme } from "../helpers";
  * Statful and updated via observers as world changes
  * Currently relied on by the BTs
  */
-const buildQueries = (world) => ({
+
+// todo unknown is not the proper typing for world.
+const buildQueries = (
+  world: ex.World<unknown>
+): Record<string, ex.Query<ex.Component<string>>> => ({
   heatSources: world.queryManager.createQuery([Constants.HEATSOURCE]),
   // TODO instead of needing to resource type tags, would be better to just
   // query ResourceProviderComponent and have BT search them for one that has
@@ -20,11 +24,12 @@ const buildQueries = (world) => ({
   ]),
   edibleResource: world.queryManager.createQuery([Constants.EDIBLE_RESOURCE]),
   describables: world.queryManager.createQuery([Constants.DESCRIBECOMPONENT]),
+  narrator: world.queryManager.createQuery([Constants.NARRATOR]),
 });
 
 ///////////// ENTITY PREFAB BUILDERS ////////////////
 
-const makeNpc = (name, pos, needs) => {
+const makeNpc = (name, pos, needs, narrator = false) => {
   const actor = new ex.Actor({
     name: name,
     pos: pos,
@@ -41,6 +46,8 @@ const makeNpc = (name, pos, needs) => {
     .addComponent(new Components.ProximityComponent())
     .addComponent(new Components.GeneratorComponent("character-generator"))
     .addTag(Constants.DESCRIBABLE);
+
+  if (narrator) actor.addTag(Constants.NARRATOR);
 
   actor.on("precollision", function (ev) {
     if (ev.target.vel.equals(ex.Vector.Zero)) return;
@@ -126,7 +133,7 @@ export class GeneratedScene extends ex.Scene {
   singleGen = true;
   entitiesToAdd: ex.Entity[];
 
-  queries;
+  queries: Record<string, ex.Query<ex.Component<string>>>;
 
   constructor(entitiesToAdd: ex.Entity[]) {
     super();
@@ -152,11 +159,18 @@ export class GeneratedScene extends ex.Scene {
     repeat(firepitNum, () => this.add(makeFirePit(randomPosition(game, 0.25))));
 
     const npcNum = this.singleGen ? 1 : 3;
-    repeat(npcNum, () => {
-      const npc = makeNpc("npc1", randomPosition(game, 0.4, 0.25), {
-        exposure: rand.integer(0, 10),
-        hunger: rand.integer(0, 10),
-      });
+
+    repeat(npcNum, (i) => {
+      const isNarrator = i === 0;
+      const npc = makeNpc(
+        "npc1",
+        randomPosition(game, 0.4, 0.25),
+        {
+          exposure: rand.integer(0, 10),
+          hunger: rand.integer(0, 10),
+        },
+        isNarrator
+      );
       // TODO manually adding name and description so it will show up, but should come from generator
       npc.addComponent(
         new Components.DescriptionComponent({
