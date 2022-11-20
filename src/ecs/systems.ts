@@ -78,14 +78,18 @@ export class HeatSourceSystem extends ex.System {
       const c = entity.get(Components.HeatSourceComponent);
       c.fuelLevel = Math.max(0, c.fuelLevel - (c.burnRate * delta) / 1000);
 
-      // draw fire
-      const size = (entity.width * 0.9 * c.fuelLevel) / c.capacity;
-      this.ctx.drawRectangle(
-        entity.pos.sub(ex.vec(size / 2, size / 2)),
-        size,
-        size,
-        ex.Color.White
-      );
+      // draw fire (I don't know the right math to position the triangle, so this is messy!)
+      const size = (((entity.width * 0.9) / 2) * c.fuelLevel) / c.capacity;
+      const { x, y } = entity.pos.sub(ex.vec(size, size));
+      const triangle = new ex.Polygon({
+        points: [
+          ex.vec(-size, -size / 2),
+          ex.vec(size, -size / 2),
+          ex.vec(0, -2 * size),
+        ],
+        color: ex.Color.White,
+      });
+      triangle.draw(this.ctx, x, 1.03 * y);
     }
   }
 }
