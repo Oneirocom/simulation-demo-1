@@ -270,7 +270,7 @@ export class NeedsSystem extends ex.System {
   };
 
   statusToString = ({ need, degree }) =>
-    "Feeling " + (degree >= 5 ? "very " : " ") + this.descriptions[need];
+    "Feeling " + (degree >= 5 ? "very " : "") + this.descriptions[need];
 
   initialize(scene: ex.Scene) {
     this.ctx = scene.engine.graphicsContext;
@@ -285,7 +285,8 @@ export class NeedsSystem extends ex.System {
         (e: ex.Entity) => e.get(Components.HeatSourceComponent).fuelLevel > 0
       );
       if (foundHeatsource) {
-        entity.get(Components.NeedsComponent).exposure -= (this.exposureRate * delta * 2) / 1000
+        entity.get(Components.NeedsComponent).exposure -=
+          (this.exposureRate * delta * 2) / 1000;
       } else {
         entity.get(Components.NeedsComponent).exposure +=
           (this.exposureRate * delta) / 1000;
@@ -293,9 +294,14 @@ export class NeedsSystem extends ex.System {
 
       // TODO this is brittle, but works for now
       const label = <ex.Label>entity.children[0];
-      label.text = this.statusToString(
+      let text = this.statusToString(
         NeedsSystem.status(entity.get(Components.NeedsComponent))
       );
+      const btDescription = entity.get(
+        Components.BTComponent
+      ).currentActionDescription;
+      if (btDescription) text += ",\ngoing to " + btDescription;
+      label.text = text;
     }
   }
 }
