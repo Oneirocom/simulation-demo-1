@@ -84,7 +84,7 @@ export class HeatSourceSystem extends ex.System {
         entity.pos.sub(ex.vec(size / 2, size / 2)),
         size,
         size,
-        ex.Color.Orange
+        ex.Color.White
       );
     }
   }
