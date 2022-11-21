@@ -78,14 +78,18 @@ export class HeatSourceSystem extends ex.System {
       const c = entity.get(Components.HeatSourceComponent);
       c.fuelLevel = Math.max(0, c.fuelLevel - (c.burnRate * delta) / 1000);
 
-      // draw fire
-      const size = (entity.width * 0.9 * c.fuelLevel) / c.capacity;
-      this.ctx.drawRectangle(
-        entity.pos.sub(ex.vec(size / 2, size / 2)),
-        size,
-        size,
-        ex.Color.Orange
-      );
+      // draw fire (I don't know the right math to position the triangle, so this is messy!)
+      const size = (((entity.width * 0.9) / 2) * c.fuelLevel) / c.capacity;
+      const { x, y } = entity.pos.sub(ex.vec(size, size));
+      const triangle = new ex.Polygon({
+        points: [
+          ex.vec(-size, -size / 2),
+          ex.vec(size, -size / 2),
+          ex.vec(0, -2 * size),
+        ],
+        color: ex.Color.White,
+      });
+      triangle.draw(this.ctx, x, 1.03 * y);
     }
   }
 }
@@ -270,7 +274,7 @@ export class NeedsSystem extends ex.System {
   };
 
   statusToString = ({ need, degree }) =>
-    "Feeling " + (degree >= 5 ? "very " : " ") + this.descriptions[need];
+    "Feeling " + (degree >= 5 ? "very " : "") + this.descriptions[need];
 
   initialize(scene: ex.Scene) {
     this.ctx = scene.engine.graphicsContext;
@@ -285,7 +289,8 @@ export class NeedsSystem extends ex.System {
         (e: ex.Entity) => e.get(Components.HeatSourceComponent).fuelLevel > 0
       );
       if (foundHeatsource) {
-        entity.get(Components.NeedsComponent).exposure -= (this.exposureRate * delta * 2) / 1000
+        entity.get(Components.NeedsComponent).exposure -=
+          (this.exposureRate * delta * 2) / 1000;
       } else {
         entity.get(Components.NeedsComponent).exposure +=
           (this.exposureRate * delta) / 1000;
@@ -293,9 +298,14 @@ export class NeedsSystem extends ex.System {
 
       // TODO this is brittle, but works for now
       const label = <ex.Label>entity.children[0];
-      label.text = this.statusToString(
+      let text = this.statusToString(
         NeedsSystem.status(entity.get(Components.NeedsComponent))
       );
+      const btDescription = entity.get(
+        Components.BTComponent
+      ).currentActionDescription;
+      if (btDescription) text += ",\ngoing to " + btDescription;
+      label.text = text;
     }
   }
 }

@@ -62,7 +62,9 @@ beginButton.addEventListener("click", async (e) => {
   };
 
   const argosScene = await generateContent(worldBody)
+  console.log('genned', argosScene)
   const sceneEntities = Bridge.parseGeneratedScene(game, argosScene)
+  console.log('parased', sceneEntities)
   // TODO could do validation here, like regenerate if error returned or something
   
   // question: do we need to store this somewhere?

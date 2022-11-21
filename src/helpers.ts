@@ -41,7 +41,7 @@ export function randomPosition(
   );
   return ex.vec(
     game.halfDrawWidth + hRange * rand.pickOne([-1, 1]),
-    game.halfDrawHeight + vRange * rand.pickOne([-1, 1]),
+    game.halfDrawHeight + vRange * rand.pickOne([-1, 1])
   );
 }
 
@@ -49,10 +49,46 @@ export function repeat(number: number, fn: (i: number) => void): void {
   Array.from({ length: number }, (_k, v) => fn(v));
 }
 
-// from https://www.colourlovers.com/palettes
 export const colorScheme = rand.pickOne([
-  ["#EBDBB2", "#FB4934", "#FE8019", "#B8BB26", "#282828"],
-  ["#5C3723", "#D63A3E", "#E47F2D", "#EDDDAA", "#69B4B2"],
-  ["#B9D886", "#C0ED9C", "#657709", "#524414", "#2B1C0F"],
-  ["#8E4137", "#CF8B4A", "#EA9957", "#90953B", "#587650"],
+  [
+    "#4C4C59",
+    "#815BD9",
+    "#6E8AFA",
+    "#30BEFF",
+    "#5EFFF4",
+    "#4C4C59",
+    "#815BD9",
+    "#6E8AFA",
+  ],
+  [
+    "#6643E6",
+    "#967DF0",
+    "#B3A4EB",
+    "#D2CCEB",
+    "#EEEAF2",
+    "#6643E6",
+    "#967DF0",
+    "#B3A4EB",
+  ],
+  [
+    "#A700FC",
+    "#8703C9",
+    "#660099",
+    "#4E0076",
+    "#300148",
+    "#A700FC",
+    "#8703C9",
+    "#660099",
+  ],
+  [
+    "#2D223C",
+    "#493A62",
+    "#756191",
+    "#987DC0",
+    "#BEAFD4",
+    "#2D223C",
+    "#493A62",
+    "#756191",
+  ],
 ]);
+// from https://www.colourlovers.com/palettes
