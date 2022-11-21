@@ -62,8 +62,9 @@ const makeNpc = (name, pos, needs, narrator = false) => {
 
   const label = new ex.Label({
     text: name,
-    pos: ex.vec(-50, -30),
-    font: new ex.Font({ size: 16, unit: ex.FontUnit.Px }),
+    pos: ex.vec(-70, -50),
+    color: ex.Color.White,
+    font: new ex.Font({ size: 12, unit: ex.FontUnit.Px }),
   });
   actor.addChild(label);
 
