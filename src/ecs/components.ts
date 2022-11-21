@@ -89,7 +89,10 @@ export class NeedsComponent extends ex.Component {
     })
       .filter(([_k, v]) => v > NeedsSystem.threshold)
       .map(([k, _v]) => k);
-    return afflictions.length > 0 ? "feels " + afflictions.join(" and ") : null;
+    // switched to feelign here.  Though we may want to consider a tense transformer for descriptions
+    return afflictions.length > 0
+      ? "feeling " + afflictions.join(" and ")
+      : null;
   }
 }
 

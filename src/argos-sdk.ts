@@ -1,7 +1,11 @@
-import { mockEnhanceWorldDescription, mockWorld, simulate } from "./config";
+import {
+  mockEnhanceWorldDescription,
+  mockWorld,
+  simulate,
+  mockNarrative,
+} from "./config";
 
 const thothUrl = "https://thoth.superreality.com:8001";
-const version = "latest";
 const mockWorldDescription = {
   outputs: {
     worldDescription:
@@ -73,6 +77,7 @@ export type ArgosScene = {
 type WorldResponse = {
   outputs: ArgosScene;
 };
+
 /**
  * generate a world.
  */
@@ -128,10 +133,19 @@ export async function enhanceWorldDescription(body: {
 }
 
 export async function narrateCharacter(characterScript) {
-  console.log("character script", characterScript);
+  const body = { inputs: characterScript };
+  return mockNarrative
+    ? Promise.resolve("This is a narrative")
+    : callSpell("old-argos-narrator", body).then((response) =>
+        response.outputs.narrative.trim()
+      );
 }
 
-export const callSpell = async (spell: string, body: Body = {}) => {
+export const callSpell = async (
+  spell: string,
+  body: Body = {},
+  version = "latest"
+) => {
   const spellEndpoint = `${thothUrl}/spells/${encodeURIComponent(
     spell
   )}/${version}`;

@@ -5,6 +5,8 @@ import * as Components from "./ecs/components";
 import Constants from "./constants";
 import { ArgosScene } from "./argos-sdk";
 
+const SESSION_ID = rand.floating(0, 100000000);
+
 /**
  * Pure function that converts a list of entities into a description
  */
@@ -20,50 +22,51 @@ export function describeWorld(entities: ex.Entity[]) {
   return description;
 }
 
-export function createCharacterScript(entity: ex.Entity) {
-  const {
-    currentAction,
-    currentActionDescription,
-    previousActionDescription,
-    previousAction,
-    previousObject,
-  } = entity.get(Components.BTComponent);
+export type CharacterScript = {
+  speaker: string;
+  agent: string;
+  client: string;
+  channel: string;
+  name: string;
+  world: string;
+  scene: string;
+  currentState: string;
+  inventory: string;
+  nextAction: string;
+  characterDescription: string;
+};
+
+export function createCharacterScript(
+  entity: ex.Entity,
+  currentScene: ArgosScene
+): CharacterScript {
+  const { currentActionDescription, previousObject } = entity.get(
+    Components.BTComponent
+  );
 
   // todo handle undefined items here better. When the simulation first starts, these are undefined.
   // in theory the spell should take care of this, but we will need to handle it.
   if (!previousObject) return null;
 
-  const { name, description } = previousObject.get(
-    Components.DescriptionComponent
-  );
-
-  // this could all probably be more concise
-  const previous = {
-    action: {
-      name: previousAction,
-      description: previousActionDescription,
-    },
-    object: {
-      name,
-      description,
-    },
-  };
-
-  const next = {
-    action: {
-      name: currentAction,
-      description: currentActionDescription,
-    },
-  };
-
   return {
+    // these are for the agent params for the spell
+    speaker: SESSION_ID.toString(),
+    agent: describeEntity(entity).name,
+    client: "sim-demo",
+    channel: "0",
+    // Begin normal params
     name: describeEntity(entity).name,
-    currentState: describeComponent(entity.get(Components.NeedsComponent)),
+    world: currentScene.worldDescription,
+    scene: currentScene.sceneDescription,
+    currentState:
+      describeComponent(entity.get(Components.NeedsComponent)) ||
+      "feeling fine",
     inventory:
       describeComponent(entity.get(Components.CollectorComponent)) ||
       "not carrying anything",
-    previous,
-    next,
+    nextAction: currentActionDescription,
+    // todo change this, as hard coding it is temporary.  Need to create character generation for character properties.
+    characterDescription: `${name} is resolute and firm.  They are stubborn but kind and persistant in trying to survive.`,
   };
 }
 

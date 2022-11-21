@@ -17,6 +17,8 @@ const describeButton = document.querySelector("#describe-world");
 const beginButton = document.querySelector("#begin-game");
 const spinnerEl = document.querySelector("#spinner");
 
+// todo put this in a better central store.
+let currentScene;
 /**
  * Called after async actions to set up initial scene are done
  */
@@ -61,6 +63,7 @@ beginButton.addEventListener("click", async (e) => {
   };
 
   const argosScene = await generateContent(worldBody);
+  currentScene = argosScene;
   const sceneEntities = Bridge.parseGeneratedScene(game, argosScene);
   // TODO could do validation here, like regenerate if error returned or something
 
@@ -103,8 +106,11 @@ describeButton.addEventListener("click", (e) => {
     const character = (
       game.currentScene as GeneratedScene
     ).queries.narrator.getEntities()[0];
-    const characterScript = Bridge.createCharacterScript(character);
-    ArgosSDK.narrateCharacter(characterScript);
+    const characterScript = Bridge.createCharacterScript(
+      character,
+      currentScene
+    );
+    ArgosSDK.narrateCharacter(characterScript).then(addNarrative);
 
     (<HTMLElement>e.target).innerText = "Continue";
   }
