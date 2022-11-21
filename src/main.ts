@@ -64,6 +64,7 @@ beginButton.addEventListener("click", async (e) => {
 
   const argosScene = await generateContent(worldBody);
   console.log("genned", argosScene);
+  currentScene = argosScene;
   const sceneEntities = Bridge.parseGeneratedScene(game, argosScene);
   console.log("parased", sceneEntities);
   // TODO could do validation here, like regenerate if error returned or something
@@ -107,10 +108,12 @@ describeButton.addEventListener("click", (e) => {
     const character = (
       game.currentScene as GeneratedScene
     ).queries.narrator.getEntities()[0];
+
     const characterScript = Bridge.createCharacterScript(
       character,
       currentScene
     );
+
     ArgosSDK.narrateCharacter(characterScript).then(addNarrative);
 
     (<HTMLElement>e.target).innerText = "Continue";
