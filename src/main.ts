@@ -1,31 +1,20 @@
 import { game } from "./game";
-import * as Bridge from "./bridge";
 import { simulate } from "./config";
-import * as ArgosSDK from "./argos-sdk";
-// import { generateDescriptions } from "./bridge";
+import * as Bridge from "./bridge";
 import "./style.css";
 import { GeneratedScene } from "./scenes/generatedScene";
-import { ArgosScene } from "./argos-sdk";
+import { generateSceneItems } from "./generator";
 import { addNarrative } from "./helpers";
 
 // game.showDebug(true)
-if (simulate) console.debug("simulating ArgOS");
+if (simulate) console.debug("simulating");
 
-const statusEl = document.querySelector("#status");
 const loadingEls = document.querySelectorAll("[data-lifecycle=loading]");
-const describeButton = document.querySelector("#describe-world");
-const beginButton = document.querySelector("#begin-game");
+const generateButtonEl = document.querySelector("#begin-game");
 const spinnerEl = document.querySelector("#spinner");
 
-// todo put this in a better central store.
-let currentScene;
-/**
- * Called after async actions to set up initial scene are done
- */
-const onReady = async (entitiesToAdd: ex.Entity[]) => {
+const onReady = (entitiesToAdd: ex.Entity[]) => {
   loadingEls.forEach((el: HTMLElement) => el.classList.add("hidden"));
-  statusEl.innerHTML = "Simulation running";
-  describeButton.classList.remove("hidden");
   spinnerEl.classList.add("hidden");
 
   console.log("generated entities", ...entitiesToAdd);
@@ -36,86 +25,26 @@ const onReady = async (entitiesToAdd: ex.Entity[]) => {
   game.start();
 };
 
-/**
- * Starts the came when the begin simulation button is pressed
- */
-beginButton.addEventListener("click", async (e) => {
+generateButtonEl.addEventListener("click", async (e) => {
   e.preventDefault();
   (e.target as HTMLButtonElement).disabled = true;
   spinnerEl.classList.remove("hidden");
 
-  // TODO disable prompt inputs
-  const worldBodyinputs = {
-    worldSummary:
-      (document.querySelector("[name=world-summary]") as HTMLInputElement)
-        .value || "The veil of unreality hides an unspeakable truth",
-    genre:
-      (document.querySelector("[name=genre]") as HTMLInputElement).value ||
-      "science fiction",
-    style:
-      (document.querySelector("[name=style]") as HTMLInputElement).value ||
-      "lovecraftian",
-  };
+  const promptInputEl = document.querySelector(
+    "[name=prompt]"
+  ) as HTMLInputElement;
+  const prompt = promptInputEl.value || promptInputEl.placeholder;
+  // note, promot is the user provided setting, not the full prompt
 
-  const worldBody = {
-    ...worldBodyinputs,
-    numberOfObjects: 5,
-  };
+  const sceneItems = await generateSceneItems(prompt);
+  console.log("gennerated scene", sceneItems);
 
-  const argosScene = await generateContent(worldBody);
-  console.log("genned", argosScene);
-  currentScene = argosScene;
-  const sceneEntities = Bridge.parseGeneratedScene(game, argosScene);
-  console.log("parased", sceneEntities);
-  // TODO could do validation here, like regenerate if error returned or something
+  onReady(Bridge.parseGeneratedItems(game, sceneItems));
 
-  // question: do we need to store this somewhere?
-  const worldDescription = argosScene.worldDescription.trim();
-  addNarrative(worldDescription);
-
-  await onReady(sceneEntities);
-});
-
-async function generateContent(worldBody): Promise<ArgosScene> {
-  const worldResponse = await ArgosSDK.generateWorld(worldBody);
-  return worldResponse.outputs;
-}
-
-/**
- * Pauses and plays the simulation.  On pause, sends a request to argos to narrate the story
- */
-let isPaused = false;
-describeButton.addEventListener("click", (e) => {
-  if (isPaused) {
-    (<HTMLElement>e.target).innerText = "Pause";
-    isPaused = false;
-    game.start();
-  } else {
-    isPaused = true;
-    game.stop();
-    // TODO forcing this to RandomScene here is brittle...
-    // const description = Bridge.describeWorld(
-    //   (game.currentScene as RandomScene).queries.describables.getEntities()
-    // );
-    // const descriptionAsString = Bridge.descriptionToString(description);
-
-    // // todo this is the part we want to swap out with a new description format for the scene
-    // ArgosSDK.enhanceWorldDescription({
-    //   description: descriptionAsString,
-    // }).then(addNarrative);
-
-    // we assume here that there is only one narrator entity.  Could probably handle more elegantly.
-    const character = (
-      game.currentScene as GeneratedScene
-    ).queries.narrator.getEntities()[0];
-
-    const characterScript = Bridge.createCharacterScript(
-      character,
-      currentScene
-    );
-
-    ArgosSDK.narrateCharacter(characterScript).then(addNarrative);
-
-    (<HTMLElement>e.target).innerText = "Continue";
-  }
+  addNarrative(
+    `I have crash landed in ${prompt}. First priority is to seek food and shelter. I am proceeding to survey the landscape...`
+  );
+  // TODO
+  // const image = await generateSceneImage(prompt);
+  // addNarrativeImage(image)
 });

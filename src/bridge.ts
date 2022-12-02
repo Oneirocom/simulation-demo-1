@@ -4,6 +4,7 @@ import { randomPosition, rand, colorScheme } from "./helpers";
 import * as Components from "./ecs/components";
 import Constants from "./constants";
 import { ArgosScene } from "./argos-sdk";
+import { GeneratedItem } from "./generator";
 
 const SESSION_ID = rand.floating(0, 100000000);
 
@@ -105,16 +106,16 @@ function describeComponent(
 }
 
 /**
- * Turns generated scenes into Excalibur entities for use in a scene
+ * Turns generated items into Excalibur entities for use in a scene
+ * Note this doesn't cover the firepit or npc, but covers everything else
  *
  * Requires the `game` for things like random positioning
  */
-export function parseGeneratedScene(
+export function parseGeneratedItems(
   game: ex.Engine,
-  sceneData: ArgosScene
+  sceneData: GeneratedItem[]
 ): ex.Entity[] {
-  return sceneData.sceneResources.map(({ name, description, properties }) => {
-    // these maybe come from argos or maybe are random or hard coded?
+  return sceneData.map(({ name, description, edible, combustible }) => {
     const basicProps = {
       // for our own debugging, not externally used
       name: name,
@@ -125,7 +126,10 @@ export function parseGeneratedScene(
     };
     const actor = new ex.Actor(basicProps);
     actor.addComponent(new DescriptionComponent({ name, description }));
-    const { tags, components } = componentsFromProperties(properties);
+    const { tags, components } = componentsFromProperties({
+      edible,
+      combustible,
+    });
     components.forEach((c) => actor.addComponent(c));
     tags.forEach((t) => actor.addTag(t));
 
@@ -133,12 +137,10 @@ export function parseGeneratedScene(
   });
 }
 
-/**
- * Map properties to components any way you can
- * Properties are AI generated and don't necessarily map 1-1 with our components
- * Returns components and tags separately
- */
-function componentsFromProperties(properties: string[]): {
+function componentsFromProperties(properties: {
+  edible: boolean;
+  combustible: boolean;
+}): {
   components: ex.Component[];
   tags: string[];
 } {
@@ -148,11 +150,7 @@ function componentsFromProperties(properties: string[]): {
   // First, let's figure out ResourceProviderComponent
   const resources = [];
 
-  // NOTE, currently properties are only EDIBLE and COMBUSTIBLE. These two
-  // properties refer to providers of said property, not the property itself
-  // (ie. the object is not edibie, it is an edible provider)
-  // TODO string matching is risky
-  if (properties.includes("COMBUSTIBLE")) {
+  if (properties.combustible) {
     resources.push({
       name: "something combustible",
       tag: Constants.COMBUSTIBLE,
@@ -160,7 +158,7 @@ function componentsFromProperties(properties: string[]): {
     });
     discoveredTags.push(Constants.COMBUSTIBLE_RESOURCE);
   }
-  if (properties.includes("EDIBLE")) {
+  if (properties.edible) {
     resources.push({
       name: "something edible",
       tag: Constants.EDIBLE,
@@ -172,13 +170,6 @@ function componentsFromProperties(properties: string[]): {
     discoveredComponents.push(
       new Components.ResourceProviderComponent(resources)
     );
-
-  // add HeatSourceComponent
-  // TODO this won't ever match for now because we don't generate this property yet
-  if (properties.includes(Constants.HEATSOURCE)) {
-    // TODO ideally figure out component init data from properties too
-    discoveredComponents.push(new Components.HeatSourceComponent(5));
-  }
 
   return { components: discoveredComponents, tags: discoveredTags };
 }
