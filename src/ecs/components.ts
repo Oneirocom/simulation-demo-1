@@ -160,7 +160,7 @@ export class SeekComponent extends ex.Component {
   type = "seek";
   speed: number;
   target: ex.Actor;
-  desired_resource?: string;
+  desiredResource?: string;
   onHit: () => void;
 
   constructor({
@@ -178,7 +178,7 @@ export class SeekComponent extends ex.Component {
     this.speed = speed;
     this.target = target;
     this.onHit = onHit;
-    if (desired_resource) this.desired_resource = desired_resource;
+    if (desired_resource) this.desiredResource = desired_resource;
   }
 }
 

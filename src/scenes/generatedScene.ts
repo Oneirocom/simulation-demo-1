@@ -34,7 +34,9 @@ const makeNpc = (name, pos, needs, narrator = false) => {
     name: name,
     pos: pos,
     vel: ex.Vector.Zero,
-    color: narrator ? ex.Color.White : ex.Color.fromHex(rand.pickOne(colorScheme)),
+    color: narrator
+      ? ex.Color.White
+      : ex.Color.fromHex(rand.pickOne(colorScheme)),
     radius: narrator ? 20 : 15,
     collisionType: ex.CollisionType.Active,
   });
@@ -131,16 +133,16 @@ const makeFirePit = (pos) =>
 
 export class GeneratedScene extends ex.Scene {
   name = "generatedScene";
-  entitiesToAdd: ex.Entity[];
+  generateSceneItems: () => Promise<ex.Entity[]>;
 
   queries: Record<string, ex.Query<ex.Component<string>>>;
 
-  constructor(entitiesToAdd: ex.Entity[]) {
+  constructor(generateSceneItems: () => Promise<ex.Entity[]>) {
     super();
-    this.entitiesToAdd = entitiesToAdd;
+    this.generateSceneItems = generateSceneItems;
   }
 
-  public onInitialize(game: ex.Engine) {
+  public async onInitialize(game: ex.Engine) {
     this.queries = buildQueries(this.world);
 
     this.world.add(new Systems.NeedsSystem());
@@ -149,15 +151,16 @@ export class GeneratedScene extends ex.Scene {
     this.world.add(new Systems.ProximitySystem());
     this.world.add(new Systems.ResourceProviderSystem());
     this.world.add(new Systems.HeatSourceSystem());
-    this.world.add(new Systems.BTSystem({ queries: this.queries }));
+    this.world.add(new Systems.BTSystem({ queries: this.queries }, this.generateSceneItems));
 
-    this.entitiesToAdd.map(this.add.bind(this));
+    const entitiesToAdd = await this.generateSceneItems();
+    console.log("generated entities", ...entitiesToAdd);
 
-    // TODO remove when scene generator includes heat sources
-    // todo constrain resources to be further from the firepit.
+    entitiesToAdd.map(this.add.bind(this));
+
     this.add(makeFirePit(randomPosition(game, 0.25)));
 
-    repeat(2, (i) => {
+    repeat(1, (i) => {
       const isNarrator = i === 0;
       const npc = makeNpc(
         "Narrator",

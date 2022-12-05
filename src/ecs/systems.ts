@@ -3,6 +3,8 @@ import * as ex from "excalibur";
 import * as Components from "./components";
 import Constants from "../constants";
 import { Entity } from "excalibur";
+import { addNarrative } from "../helpers";
+import { GeneratedScene } from "../scenes/generatedScene";
 
 //
 /////////// SYSTEMS //////////////
@@ -120,26 +122,44 @@ export class SeekSystem extends ex.System {
         seek.onHit();
 
         // if seeking was to get a resource, now is the time to claim it
-        const desired_resource = entity.get(
+        const desiredResource = entity.get(
           Components.SeekComponent
-        ).desired_resource;
+        ).desiredResource;
+
         if (
-          desired_resource &&
+          desiredResource &&
           entity.has(Components.CollectorComponent) &&
           seek.target.has(Components.ResourceProviderComponent) &&
           seek.target
             .get(Components.ResourceProviderComponent)
-            .resources.has(desired_resource)
+            .resources.has(desiredResource)
         ) {
           // TODO ask resource providor for resource instead of take (so it can validate and update count when/if implemented)
           const resource = seek.target
             .get(Components.ResourceProviderComponent)
-            .resources.get(desired_resource);
+            .resources.get(desiredResource);
           entity
             .get(Components.CollectorComponent)
             .inventory.set(resource.tag, resource);
 
           entity.get(Components.BTComponent).previousObject = seek.target;
+
+          // NOTE changing how resources work, using it uses it up
+          seek.target.kill();
+
+          const { name, description } = seek.target.get(
+            Components.DescriptionComponent
+          );
+          let action = "";
+          if (desiredResource === Constants.EDIBLE)
+            action = "I will attempt to eat it.";
+          if (desiredResource === Constants.COMBUSTIBLE)
+            action = "I will use it to make a fire.";
+
+          addNarrative(
+            `I have discovered ${name}. It is ${description}. ${action}`
+          );
+          // TODO generate image
         }
 
         // NOTE force remove in case other system wants to add a new seek in same frame
@@ -325,7 +345,7 @@ export class NeedsSystem extends ex.System {
  * Calls the action fn with a callback you _must_ call when the action finishes
  * to clear the current action
  *
- * Runs every second
+ * Runs at an interval
  *
  * only works on "NPCs" (BT, needs, and collector components)
  */
@@ -334,10 +354,20 @@ export class BTSystem extends ex.System {
   priority = 10;
   systemType = ex.SystemType.Update;
   context = {};
+  game: ex.Engine;
+  generateSceneItems: () => Promise<ex.Entity[]>;
 
-  constructor(context: Record<string, unknown>) {
+  // TODO takes the generator to use if BT is out of options, but feels like the wrong place to put it
+  constructor(
+    context: Record<string, unknown>,
+    generateSceneItems: () => Promise<ex.Entity[]>
+  ) {
     super();
     this.context = context;
+    this.generateSceneItems = generateSceneItems;
+  }
+  initialize(scene: ex.Scene) {
+    this.game = scene.engine;
   }
 
   // reset entity action when action is finished.
@@ -349,11 +379,12 @@ export class BTSystem extends ex.System {
     entity.get(Components.BTComponent).currentActionDescription = null;
   };
 
+  interval = 2000;
   elapsedTime = 0;
 
   update(entities: Entity[], delta) {
     this.elapsedTime += delta;
-    if (this.elapsedTime < 1000) return;
+    if (this.elapsedTime < this.interval) return;
     this.elapsedTime = 0;
 
     entities.forEach((e) => {
@@ -370,6 +401,20 @@ export class BTSystem extends ex.System {
         btComponent.previousAction = btComponent.currentAction;
         btComponent.currentAction = key;
         btComponent.currentActionDescription = description;
+      }
+      // TODO this should be locked down to only narrating entities
+      if (key === "FIND_NEW_AREA") {
+        addNarrative(
+          "The near by resources have been depleted.  I must explore a new area."
+        );
+        // TODO reset scene
+        this.game.removeScene(this.game.currentScene);
+        this.game.stop();
+        const scene = new GeneratedScene(this.generateSceneItems);
+        this.game.addScene(scene.name, scene);
+        console.log("running scene:", scene.name);
+        this.game.goToScene(scene.name);
+        this.game.start();
       }
     });
   }
