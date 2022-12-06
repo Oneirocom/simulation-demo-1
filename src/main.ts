@@ -45,6 +45,7 @@ generateButtonEl.addEventListener("click", async (e) => {
   e.preventDefault();
   (e.target as HTMLButtonElement).disabled = true;
   promptInputEl.disabled = true;
+  showSpinner();
 
   const prompt = promptInputEl.value || promptInputEl.placeholder;
   addNarrative(
@@ -53,11 +54,12 @@ generateButtonEl.addEventListener("click", async (e) => {
   // TODO
   const imagePrompt = `Concept art for the following story: I have crash landed in ${prompt}. First priority is to seek food and shelter.`;
   const url = await Generator.generateImage(imagePrompt);
+  hideSpinner();
   addNarrativeImage(url);
 
   initEls.forEach((el: HTMLElement) => el.classList.add("hidden"));
 
-  const scene = new GeneratedScene(generateSceneItems, prompt);
+  const scene = new GeneratedScene(generateSceneItems);
   game.add(scene.name, scene);
   console.log("running scene:", scene.name);
   game.goToScene(scene.name);

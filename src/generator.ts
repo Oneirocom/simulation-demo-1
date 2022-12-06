@@ -8,6 +8,7 @@ export type GeneratedItem = {
   description: string;
   edible: boolean;
   combustible: boolean;
+  imageUrl: string;
 };
 
 export async function generateImage(prompt: string) {
@@ -63,8 +64,14 @@ export async function generateSceneItems(
   const parsed = parse(data.result);
   console.log("parsed", parsed);
 
-  // TODO for each item, generate an image and add the image to the DescriptionComponent
-  return parsed;
+  const withImages = parsed.map(async (item) => {
+    const imagePrompt = `${item.name} in ${this.prompt}. ${item.description}. As concept art`;
+    return generateImage(imagePrompt).then((url) => ({
+      ...item,
+      imageUrl: url,
+    }));
+  });
+  return Promise.all(withImages);
 }
 
 function parse(data: string) {
@@ -92,30 +99,35 @@ const mockScene = [
     description: "Tall, with large leaves and wide trunks",
     edible: false,
     combustible: true,
+    imageUrl: "https://placekitten.com/256/256",
   },
   {
     name: "Mud Skippers",
     description: "Small fish that live in the mud of the swamp ",
     edible: true,
     combustible: false,
+    imageUrl: "https://placekitten.com/256/256",
   },
   {
     name: "Mosses & Lichens",
     description: "Low-growing plants found on rocks and trees ",
     edible: false,
     combustible: false,
+    imageUrl: "https://placekitten.com/256/256",
   },
   {
     name: "Fungi",
     description: "Various mushrooms and molds found in damp environments ",
     edible: true,
     combustible: false,
+    imageUrl: "https://placekitten.com/256/256",
   },
   {
     name: "Insects & Arachnids",
     description: "Various bugs and spiders living in the swamp",
     edible: true,
     combustible: false,
+    imageUrl: "https://placekitten.com/256/256",
   },
 ];
 

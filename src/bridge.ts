@@ -115,7 +115,7 @@ export function parseGeneratedItems(
   game: ex.Engine,
   sceneData: GeneratedItem[]
 ): ex.Entity[] {
-  return sceneData.map(({ name, description, edible, combustible }) => {
+  return sceneData.map(({ name, description, edible, combustible, imageUrl }) => {
     const basicProps = {
       // for our own debugging, not externally used
       name: name,
@@ -125,7 +125,7 @@ export function parseGeneratedItems(
       collisionType: ex.CollisionType.Fixed,
     };
     const actor = new ex.Actor(basicProps);
-    actor.addComponent(new DescriptionComponent({ name, description }));
+    actor.addComponent(new DescriptionComponent({ name, description, imageUrl }));
     const { tags, components } = componentsFromProperties({
       edible,
       combustible,

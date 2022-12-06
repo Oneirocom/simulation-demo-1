@@ -134,14 +134,12 @@ const makeFirePit = (pos) =>
 export class GeneratedScene extends ex.Scene {
   name = "generatedScene";
   generateSceneItems: () => Promise<ex.Entity[]>;
-  setting: string;
 
   queries: Record<string, ex.Query<ex.Component<string>>>;
 
-  constructor(generateSceneItems: () => Promise<ex.Entity[]>, setting: string) {
+  constructor(generateSceneItems: () => Promise<ex.Entity[]>) {
     super();
     this.generateSceneItems = generateSceneItems;
-    this.setting = setting;
   }
 
   public async onInitialize(game: ex.Engine) {
@@ -149,11 +147,13 @@ export class GeneratedScene extends ex.Scene {
 
     this.world.add(new Systems.NeedsSystem());
     this.world.add(new Systems.CollectorSystem());
-    this.world.add(new Systems.SeekSystem(this.setting));
+    this.world.add(new Systems.SeekSystem());
     this.world.add(new Systems.ProximitySystem());
     this.world.add(new Systems.ResourceProviderSystem());
     this.world.add(new Systems.HeatSourceSystem());
-    this.world.add(new Systems.BTSystem({ queries: this.queries }, this.generateSceneItems));
+    this.world.add(
+      new Systems.BTSystem({ queries: this.queries }, this.generateSceneItems)
+    );
 
     const entitiesToAdd = await this.generateSceneItems();
     console.log("generated entities", ...entitiesToAdd);
@@ -178,6 +178,7 @@ export class GeneratedScene extends ex.Scene {
         new Components.DescriptionComponent({
           name: isNarrator ? "Narrator" : "Other NPC",
           description: "A sentient being",
+          imageUrl: ""
         })
       );
       this.add(npc);

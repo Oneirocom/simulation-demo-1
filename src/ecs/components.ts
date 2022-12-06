@@ -110,10 +110,12 @@ export class DescriptionComponent extends ex.Component {
   type = Constants.DESCRIBECOMPONENT;
   name: string;
   description: string;
-  constructor({ name: name, description: description }) {
+  imageUrl: string;
+  constructor({ name: name, description: description, imageUrl: imageUrl }) {
     super();
     this.name = name;
     this.description = description;
+    this.imageUrl = imageUrl;
   }
 
   onAdd(e: ex.Actor): void {
