@@ -1,8 +1,6 @@
 import { simulate } from "./config";
 
-const completionEndpoint = "https://api.openai.com/v1/completions";
-// Warning danger, only temporary
-const key = new URLSearchParams(document.location.search).get("key");
+const completionEndpoint = "http://localhost:8080/api/generate";
 
 export type GeneratedItem = {
   name: string;
@@ -16,12 +14,12 @@ export async function generateSceneItems(
 ): Promise<GeneratedItem[]> {
   if (simulate) return mockScene;
 
-  const sceneGenBody = {
+  const body = {
     model: "text-davinci-003",
     prompt: [
       `I have crash landed in ${setting}.  I must seek food and shelter.`,
       "A spreadsheet of at least 5 things I might find:\n",
-      "Name | Description | Can provide something to eat? | Can provide something to burn?",
+      "|Name | Description | Can provide something to eat? | Can provide something to burn?|",
       "-----------------------------------------------------------------------------------------\n",
     ].join("\n"),
     temperature: 1,
@@ -31,17 +29,37 @@ export async function generateSceneItems(
     presence_penalty: 0.48,
   };
 
-  return fetch(completionEndpoint, {
+  const response = await fetch(completionEndpoint, {
     method: "POST",
-    body: JSON.stringify(sceneGenBody),
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${key}`,
     },
-  }).then((res) => {
-    // TODO parse
-    return mockScene;
+    body: JSON.stringify(body),
   });
+  const data = await response.json();
+  console.log("raw response", data.result);
+  const parsed = parse(data.result);
+  console.log("parsed", parsed);
+  return parsed;
+}
+
+function parse(data: string) {
+  const lines = data.split("\n");
+  const parsed = [];
+  for (const line of lines) {
+    const fields = line.split("|").filter((x) => x !== "");
+    console.log(fields);
+    if (fields[0].includes("---")) continue;
+    if (fields.length < 4) continue;
+    const obj = {
+      name: fields[0].trim().replace(/^\d\.\s*/, ""),
+      description: fields[1].trim(),
+      edible: fields[2].toLowerCase().includes("yes"),
+      combustible: fields[3].toLowerCase().includes("yes"),
+    };
+    parsed.push(obj);
+  }
+  return parsed;
 }
 
 const mockScene = [

@@ -12,11 +12,21 @@ if (simulate) console.debug("simulating");
 const initEls = document.querySelectorAll("[data-lifecycle=init]");
 const generateButtonEl = document.querySelector("#begin-game");
 const spinnerEl = document.querySelector("#spinner");
+const describeButton = document.querySelector("#describe-world");
+let paused = false;
+describeButton.addEventListener("click", () => {
+  if (paused) {
+    game.start();
+    paused = false;
+  } else {
+    game.stop();
+    paused = true;
+  }
+});
 
 const promptInputEl = document.querySelector(
   "[name=prompt]"
 ) as HTMLInputElement;
-const prompt = promptInputEl.value || promptInputEl.placeholder;
 // note, promot is the user provided setting, not the full prompt
 
 const showSpinner = () => spinnerEl.classList.remove("hidden");
@@ -24,6 +34,7 @@ const hideSpinner = () => spinnerEl.classList.add("hidden");
 
 const generateSceneItems = async () => {
   showSpinner();
+  const prompt = promptInputEl.value || promptInputEl.placeholder;
   const sceneItems = await Generator.generateSceneItems(prompt);
   console.log("gennerated scene", sceneItems);
   hideSpinner();
@@ -35,6 +46,7 @@ generateButtonEl.addEventListener("click", async (e) => {
   (e.target as HTMLButtonElement).disabled = true;
   promptInputEl.disabled = true;
 
+  const prompt = promptInputEl.value || promptInputEl.placeholder;
   addNarrative(
     `I have crash landed in ${prompt}. First priority is to seek food and shelter. I am proceeding to survey the landscape...`
   );

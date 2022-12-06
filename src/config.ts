@@ -1,5 +1,5 @@
 // override everything with the global simulate mocking
-export const simulate = true;
+export const simulate = false;
 
 // If simulate is false, these can be toggled to work on different pieces of the pipeline
 export const mockWorld = false || simulate;

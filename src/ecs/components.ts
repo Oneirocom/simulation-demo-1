@@ -117,10 +117,13 @@ export class DescriptionComponent extends ex.Component {
   }
 
   onAdd(e: ex.Actor): void {
-    e.on("pointerenter", () => e.actions.scaleTo(ex.vec(1.1, 1.1), ex.vec(1, 1)))
-    e.on("pointerleave", () => e.actions.scaleTo(ex.vec(1, 1), ex.vec(1, 1)))
+    e.on("pointerenter", () =>
+      e.actions.scaleTo(ex.vec(1.1, 1.1), ex.vec(1, 1))
+    );
+    e.on("pointerleave", () => e.actions.scaleTo(ex.vec(1, 1), ex.vec(1, 1)));
     e.on("pointerdown", () => {
-      addNarrative(e.get(DescriptionComponent).description);
+      const { name, description } = e.get(DescriptionComponent);
+      addNarrative(name + ". " + description);
     });
   }
 }

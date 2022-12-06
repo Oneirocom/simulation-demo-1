@@ -157,7 +157,7 @@ export class SeekSystem extends ex.System {
             action = "I will use it to make a fire.";
 
           addNarrative(
-            `I have discovered ${name}. It is ${description}. ${action}`
+            `I have discovered ${name}. ${description}. ${action}`
           );
           // TODO generate image
         }
