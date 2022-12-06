@@ -134,12 +134,14 @@ const makeFirePit = (pos) =>
 export class GeneratedScene extends ex.Scene {
   name = "generatedScene";
   generateSceneItems: () => Promise<ex.Entity[]>;
+  setting: string;
 
   queries: Record<string, ex.Query<ex.Component<string>>>;
 
-  constructor(generateSceneItems: () => Promise<ex.Entity[]>) {
+  constructor(generateSceneItems: () => Promise<ex.Entity[]>, setting: string) {
     super();
     this.generateSceneItems = generateSceneItems;
+    this.setting = setting;
   }
 
   public async onInitialize(game: ex.Engine) {
@@ -147,7 +149,7 @@ export class GeneratedScene extends ex.Scene {
 
     this.world.add(new Systems.NeedsSystem());
     this.world.add(new Systems.CollectorSystem());
-    this.world.add(new Systems.SeekSystem());
+    this.world.add(new Systems.SeekSystem(this.setting));
     this.world.add(new Systems.ProximitySystem());
     this.world.add(new Systems.ResourceProviderSystem());
     this.world.add(new Systems.HeatSourceSystem());

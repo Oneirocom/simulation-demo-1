@@ -3,7 +3,8 @@ import * as ex from "excalibur";
 import * as Components from "./components";
 import Constants from "../constants";
 import { Entity } from "excalibur";
-import { addNarrative } from "../helpers";
+import * as Generator from "../generator";
+import { addNarrative, addNarrativeImage } from "../helpers";
 import { GeneratedScene } from "../scenes/generatedScene";
 
 //
@@ -106,6 +107,15 @@ export class SeekSystem extends ex.System {
 
   elapsedTime = 0;
 
+  prompt: string;
+
+  constructor(
+    // passing this in is gross
+    prompt: string
+  ) {
+    super();
+    this.prompt = prompt;
+  }
   update(entities: ex.Actor[], delta: number) {
     this.elapsedTime += delta;
     if (this.elapsedTime < 100) return;
@@ -156,10 +166,12 @@ export class SeekSystem extends ex.System {
           if (desiredResource === Constants.COMBUSTIBLE)
             action = "I will use it to make a fire.";
 
-          addNarrative(
-            `I have discovered ${name}. ${description}. ${action}`
+          addNarrative(`I have discovered ${name}. ${description}. ${action}`);
+          const imagePrompt = `${name} in ${this.prompt}. ${description}. Concept art`;
+          console.log(imagePrompt);
+          Generator.generateImage(imagePrompt).then((url) =>
+            addNarrativeImage(url)
           );
-          // TODO generate image
         }
 
         // NOTE force remove in case other system wants to add a new seek in same frame

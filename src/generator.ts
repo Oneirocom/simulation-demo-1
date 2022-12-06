@@ -1,6 +1,7 @@
 import { simulate } from "./config";
 
 const completionEndpoint = "http://localhost:8080/api/generate";
+const imageEndpoint = "http://localhost:8080/api/image";
 
 export type GeneratedItem = {
   name: string;
@@ -8,6 +9,27 @@ export type GeneratedItem = {
   edible: boolean;
   combustible: boolean;
 };
+
+export async function generateImage(prompt: string) {
+  if (simulate) return "https://placekitten.com/256/256";
+
+  const body = {
+    prompt,
+    n: 1,
+    size: "256x256",
+  };
+
+  const response = await fetch(imageEndpoint, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+  const data = await response.json();
+  console.log("image link", data.result);
+  return data.result;
+}
 
 export async function generateSceneItems(
   setting: string
@@ -40,6 +62,8 @@ export async function generateSceneItems(
   console.log("raw response", data.result);
   const parsed = parse(data.result);
   console.log("parsed", parsed);
+
+  // TODO for each item, generate an image and add the image to the DescriptionComponent
   return parsed;
 }
 

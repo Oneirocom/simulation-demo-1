@@ -4,7 +4,7 @@ import * as Bridge from "./bridge";
 import "./style.css";
 import { GeneratedScene } from "./scenes/generatedScene";
 import * as Generator from "./generator";
-import { addNarrative } from "./helpers";
+import { addNarrative, addNarrativeImage } from "./helpers";
 
 // game.showDebug(true)
 if (simulate) console.debug("simulating");
@@ -51,12 +51,13 @@ generateButtonEl.addEventListener("click", async (e) => {
     `I have crash landed in ${prompt}. First priority is to seek food and shelter. I am proceeding to survey the landscape...`
   );
   // TODO
-  // const image = await generateSceneImage(prompt);
-  // addNarrativeImage(image)
+  const imagePrompt = `Concept art for the following story: I have crash landed in ${prompt}. First priority is to seek food and shelter.`;
+  const url = await Generator.generateImage(imagePrompt);
+  addNarrativeImage(url);
 
   initEls.forEach((el: HTMLElement) => el.classList.add("hidden"));
 
-  const scene = new GeneratedScene(generateSceneItems);
+  const scene = new GeneratedScene(generateSceneItems, prompt);
   game.add(scene.name, scene);
   console.log("running scene:", scene.name);
   game.goToScene(scene.name);
