@@ -146,6 +146,13 @@ export class SeekSystem extends ex.System {
         // Hopefully this shouldn't cause any issues since other systems don't use this component (currently)
         // Might still have an issue with ordering though if adding a seek happens before current seek is removed?
         entity.removeComponent("seek", true);
+
+        // flash target for visual effect
+        const color = seek.target.color;
+        seek.target.actions
+          .callMethod(() => (seek.target.color = color.lighten(0.2)))
+          .delay(100)
+          .callMethod(() => (seek.target.color = color));
       } else {
         entity.vel = seek.target.pos
           .sub(entity.pos)

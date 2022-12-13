@@ -2,6 +2,7 @@ import { action, node } from "./bt";
 import * as Components from "../ecs/components";
 import * as Systems from "../ecs/systems";
 import Constants from "../constants";
+import {rand} from "../helpers";
 
 //
 /////////// NPC BT //////////////
@@ -83,7 +84,7 @@ const locate = (
     const closestFirst = found.sort((a: ex.Actor, b: ex.Actor) =>
       a.pos.distance(bb.entity.pos) > b.pos.distance(bb.entity.pos) ? 1 : -1
     );
-    bb.target = closestFirst[0];
+    bb.target = closestFirst[rand.integer(0, Math.min(3, closestFirst.length- 1))];
     return true;
   } else {
     return false;

@@ -34,8 +34,8 @@ const makeNpc = (name, pos, needs, narrator = false) => {
     name: name,
     pos: pos,
     vel: ex.Vector.Zero,
-    color: ex.Color.fromHex(rand.pickOne(colorScheme)),
-    radius: 20,
+    color: narrator ? ex.Color.White : ex.Color.fromHex(rand.pickOne(colorScheme)),
+    radius: narrator ? 20 : 15,
     collisionType: ex.CollisionType.Active,
   });
 
@@ -131,7 +131,6 @@ const makeFirePit = (pos) =>
 
 export class GeneratedScene extends ex.Scene {
   name = "generatedScene";
-  singleGen = true;
   entitiesToAdd: ex.Entity[];
 
   queries: Record<string, ex.Query<ex.Component<string>>>;
@@ -155,16 +154,13 @@ export class GeneratedScene extends ex.Scene {
     this.entitiesToAdd.map(this.add.bind(this));
 
     // TODO remove when scene generator includes heat sources
-    const firepitNum = this.singleGen ? 1 : rand.integer(1, 3);
     // todo constrain resources to be further from the firepit.
-    repeat(firepitNum, () => this.add(makeFirePit(randomPosition(game, 0.25))));
+    this.add(makeFirePit(randomPosition(game, 0.25)));
 
-    const npcNum = this.singleGen ? 1 : 3;
-
-    repeat(npcNum, (i) => {
+    repeat(2, (i) => {
       const isNarrator = i === 0;
       const npc = makeNpc(
-        "npc1",
+        "Narrator",
         randomPosition(game, 0.4, 0.25),
         {
           exposure: rand.integer(0, 10),
@@ -175,7 +171,7 @@ export class GeneratedScene extends ex.Scene {
       // TODO manually adding name and description so it will show up, but should come from generator
       npc.addComponent(
         new Components.DescriptionComponent({
-          name: `npc${npcNum}`,
+          name: isNarrator ? "Narrator" : "Other NPC",
           description: "A sentient being",
         })
       );
