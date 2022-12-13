@@ -2,7 +2,7 @@ import { action, node } from "./bt";
 import * as Components from "../ecs/components";
 import * as Systems from "../ecs/systems";
 import Constants from "../constants";
-import {rand} from "../helpers";
+import { rand } from "../helpers";
 
 //
 /////////// NPC BT //////////////
@@ -42,6 +42,17 @@ export const actions = {
       return done();
     },
   }),
+  DO_NOTHING: action(() => ({
+    key: "DO_NOTHING",
+    description: "relax",
+    fn: () => console.log("no actions"),
+  })),
+
+  FIND_NEW_AREA: () => ({
+    key: "FIND_NEW_AREA",
+    description: "find a new area with new resources",
+    fn: () => console.log("current area is depleated"),
+  }),
 };
 
 function seekActionFn(entity: ex.Entity, target: ex.Actor, desired_resource) {
@@ -60,14 +71,6 @@ function seekActionFn(entity: ex.Entity, target: ex.Actor, desired_resource) {
   };
 }
 
-// NOTE these actions rely on queries being set in the game and made availble via the bb!
-
-const doNothing = action(() => ({
-  key: "DO_NOTHING",
-  description: "relax",
-  fn: () => console.log("no actions"),
-}));
-
 /**
  * Predicate for a Node, attempts to find an entity by supplied query,
  * setting it as target in the blackboard if successful
@@ -84,7 +87,8 @@ const locate = (
     const closestFirst = found.sort((a: ex.Actor, b: ex.Actor) =>
       a.pos.distance(bb.entity.pos) > b.pos.distance(bb.entity.pos) ? 1 : -1
     );
-    bb.target = closestFirst[rand.integer(0, Math.min(3, closestFirst.length- 1))];
+    bb.target =
+      closestFirst[rand.integer(0, Math.min(3, closestFirst.length - 1))];
     return true;
   } else {
     return false;
@@ -101,7 +105,7 @@ const getWarmTree = [
         Constants.HEATSOURCE,
         (e: ex.Entity) => e.get(Components.HeatSourceComponent).fuelLevel > 0
       ),
-    [doNothing]
+    [actions.DO_NOTHING]
   ),
   // if fire source, go to it
   node(
@@ -129,10 +133,13 @@ const getWarmTree = [
       ),
     ]
   ),
+  // else find something to burn
   node(
     (bb) => locate(bb.queries.combustibleResource, bb),
     [action(actions.SEEK_COMBUSTIBLE)]
   ),
+  // look for greener pastures
+  action(actions.FIND_NEW_AREA),
 ];
 
 const eatTree = [
@@ -156,6 +163,8 @@ const eatTree = [
     (bb) => locate(bb.queries.edibleResource, bb),
     [action(actions.SEEK_FOOD)]
   ),
+  // look for greener pastures
+  action(actions.FIND_NEW_AREA),
 ];
 
 export default [
@@ -171,5 +180,5 @@ export default [
       "hunger",
     eatTree
   ),
-  doNothing,
+  actions.DO_NOTHING,
 ];

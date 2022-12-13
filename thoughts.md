@@ -1,5 +1,6 @@
 ### Prefabs
-Would be great to have a prefab system that would allow us to easily add new components to different item types.  I did this with another little ECS I built and I quite liked it.  The format was something like this:
+
+Would be great to have a prefab system that would allow us to easily add new components to different item types. I did this with another little ECS I built and I quite liked it. The format was something like this:
 
 ```
 {
@@ -7,12 +8,11 @@ Would be great to have a prefab system that would allow us to easily add new com
 }
 ```
 
-Then the prefab can be stored as a json file in the project.  They are also super easy to compose programatically in an environment in Thoth, etc.  We can decomposew the object into its key/values, knowing that each key is a componentName, and each value is the data to be loaded into it.
+Then the prefab can be stored as a json file in the project. They are also super easy to compose programatically in an environment in Thoth, etc. We can decomposew the object into its key/values, knowing that each key is a componentName, and each value is the data to be loaded into it.
 
-The componentName string could map to the constructor function in a map.  My little ECS actually registered components during the initial world bootup, alongside registering systems.  Then prefabs could just be loaded into the system and turn into entities in the world as needed.
+The componentName string could map to the constructor function in a map. My little ECS actually registered components during the initial world bootup, alongside registering systems. Then prefabs could just be loaded into the system and turn into entities in the world as needed.
 
 The createPrefab function could also take a map of data data value overrides you may want a unique thing to have.
-
 
 ### NPC actions
 
@@ -58,3 +58,30 @@ Notes on naming things
 no entity presets
 a set of required components that must exist in the scene
 randomly create entities with random components until all required components have been used at least once
+
+### Improving the demo
+
+As it stands, the demo doesn't convey what we had hoped, which is to use AI to create a scene and narrate the actions that happen in it via the simulator.
+
+Generating world flavor text works fine, but doesn't seem to impact the rest of the narration well.
+
+Generating scenes has issues, but using the spreadsheet prompt works better. However the items are usually the same each time and barely reflect the context.
+
+Generating the narration is very off. It doesn't express what is happening and it doesn't line up with the context and it often goes off the rails with content that doesn't make sense.
+
+Here's a new approach that is more specific and streamlined and hopes to show the interplay of simulator and AI better:
+
+I believe part of the problem is that our simulation is very limited and specific (survival-like), so our prompts need to reflect that to make sense. I am imagining something like a log from a crash landing survivor.
+
+1. Get user prompt in format "I have crash landed in [a swamp on an alien planet]" (user can change part in [])
+2. Generate spreadsheet of 5 things that might be there and indicate whether edible and/or burnable.
+3. Load simulation with these items, but don't show what they are (via mouseover or in narrative)
+4. Render static narrative in format "[prompt]. First priority is to seek food and shelter. I am proceeding to survey the landscape..."
+5. Render generated image from prompt.
+6. When simulation BT reaches a seek target, render static narrative in format "I have discovered [generated target name]. It is [generated target description]. [action]" where "action" is "I will attempt to eat it" or "I will use it to make a fire".
+7. Consider rendering generated narrative for flavor, such as how it tastes or how well it burns.
+8. Render generated image from above narrative.
+9. Remove target from scene.
+10. Continue simulation. When resting at fire, consider rendering static or generated narration like "I have a moment to rest. During my survey, I also discovered [name and description of any generated item that is not edible or burnable.]" Render generated image. Remove the other discovered item.
+11. Continue looping 6 - 10 until a required seek item is unavailable. Render static narration "I am unable to discover another source of [food | fuel] here. I must explore a new area."
+12. Reload scene and continue at step 2. (new colors, new layout, new generated items)

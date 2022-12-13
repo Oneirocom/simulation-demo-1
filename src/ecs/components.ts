@@ -110,17 +110,22 @@ export class DescriptionComponent extends ex.Component {
   type = Constants.DESCRIBECOMPONENT;
   name: string;
   description: string;
-  constructor({ name: name, description: description }) {
+  imageUrl: string;
+  constructor({ name: name, description: description, imageUrl: imageUrl }) {
     super();
     this.name = name;
     this.description = description;
+    this.imageUrl = imageUrl;
   }
 
   onAdd(e: ex.Actor): void {
-    e.on("pointerenter", () => e.actions.scaleTo(ex.vec(1.1, 1.1), ex.vec(1, 1)))
-    e.on("pointerleave", () => e.actions.scaleTo(ex.vec(1, 1), ex.vec(1, 1)))
+    e.on("pointerenter", () =>
+      e.actions.scaleTo(ex.vec(1.1, 1.1), ex.vec(1, 1))
+    );
+    e.on("pointerleave", () => e.actions.scaleTo(ex.vec(1, 1), ex.vec(1, 1)));
     e.on("pointerdown", () => {
-      addNarrative(e.get(DescriptionComponent).description);
+      const { name, description } = e.get(DescriptionComponent);
+      addNarrative(name + ". " + description);
     });
   }
 }
@@ -160,7 +165,7 @@ export class SeekComponent extends ex.Component {
   type = "seek";
   speed: number;
   target: ex.Actor;
-  desired_resource?: string;
+  desiredResource?: string;
   onHit: () => void;
 
   constructor({
@@ -178,7 +183,7 @@ export class SeekComponent extends ex.Component {
     this.speed = speed;
     this.target = target;
     this.onHit = onHit;
-    if (desired_resource) this.desired_resource = desired_resource;
+    if (desired_resource) this.desiredResource = desired_resource;
   }
 }
 
